@@ -1,36 +1,36 @@
 ---
 name: onboard
-description: "Set up a new user's local environment: discover Python and tool paths, install required Python packages, validate WRDS access, and create machine-local Claude files. Run once per machine or after environment changes."
+description: "Thin wrapper over tools/bootstrap.py for first-run local setup. Discover Python, run the shared bootstrap audit plan, execute the required setup commands, and refresh machine-local files."
 argument-hint: "[wrds-username (optional)]"
 ---
 
 # User Onboarding
 
-Goal: a fresh clone should be able to run `/onboard` and end with a usable local environment plus two machine-local files:
-
-- `CLAUDE.local.md`
-- `.claude/settings.local.json`
-
-This skill must be safe to re-run, must not assume repo-shared local state, and must not rely on bare `python` or `pip` on Windows.
+Use the shared repo-local bootstrap engine in `tools/bootstrap.py`. This skill
+is only a wrapper around that flow; do not duplicate bootstrap logic here when
+the script already handles it.
 
 ## Hard Rules
 
 - Print `Scanning your environment...` before discovery.
-- Print `Testing WRDS connectivity...` before verification.
-- Never assume bare `python` or bare `pip` are valid on Windows. Use the discovered absolute Python path and `"<python>" -m pip`.
-- Never rely on shared plugin or MCP config. `/onboard` must work with only the shared `.claude/settings.json`.
-- Preserve any existing non-Bash permissions in `.claude/settings.local.json`. Replace only `Bash(...)` entries with the canonical set.
-- If an install path requires admin privileges or a missing package manager, stop and give exact instructions instead of half-configuring the machine.
-- Treat SSH key setup as optional for basic PostgreSQL access. Missing SSH config/key should be reported, not silently ignored.
-- On Windows, Bash support is required. If `uname` is unavailable or the shell is not POSIX-like, stop and tell the user to install Git for Windows / Git Bash and ensure Claude Code can run Bash commands.
+- Print `Testing WRDS connectivity...` before live `psql` checks.
+- Never assume bare `python` or bare `pip` are valid on Windows.
+- Use the discovered absolute Python path and `"<python>" -m pip`.
+- Prefer `tools/bootstrap.py audit`, the emitted `bootstrap_plan`, and `tools/bootstrap.py apply` over ad hoc local-file generation.
+- Treat `LOCAL_ENV.md` as canonical. `CLAUDE.local.md` is a compatibility output.
+- Let `tools/bootstrap.py apply` manage `.claude/settings.local.json`; it preserves non-Bash entries and refreshes the Bash allow rules.
+- If an install path needs admin privileges or a missing package manager, stop and give exact instructions.
+- If a bootstrap-plan command needs approval, request it and continue with that exact command.
+- Treat SSH key setup as optional for basic PostgreSQL access.
 
-## Phase 1: Discover
+## Workflow
 
-Run this Bash command first. Its only job is to find a working Python interpreter without touching the repo.
+### 1. Find Python
+
+Find a working interpreter first:
 
 ```bash
 OS=$(uname -s 2>/dev/null || echo "unknown")
-echo "PLATFORM=$OS"
 
 PYTHON=""
 if [[ "$OS" == MINGW* || "$OS" == MSYS* ]]; then
@@ -45,36 +45,14 @@ if [[ "$OS" == MINGW* || "$OS" == MSYS* ]]; then
       break
     fi
   done
-  if [[ -z "$PYTHON" ]]; then
-    for name in python3 python; do
-      CAND=$(which "$name" 2>/dev/null)
-      if [[ -n "$CAND" ]] && [[ "$CAND" != *"/WindowsApps/"* ]]; then
-        "$CAND" --version >/dev/null 2>&1 && { PYTHON="$CAND"; break; }
-      fi
-    done
-  fi
-elif [[ "$OS" == "Darwin" ]]; then
-  for p in \
-    /opt/homebrew/bin/python3 \
-    /usr/local/bin/python3 \
-    "$HOME/anaconda3/bin/python" \
-    "$HOME/miniforge3/bin/python" \
-    "$HOME/miniconda3/bin/python"; do
-    if [[ -x "$p" ]]; then
-      PYTHON="$p"
-      break
-    fi
-  done
-  if [[ -z "$PYTHON" ]]; then
-    for name in python3 python; do
-      CAND=$(which "$name" 2>/dev/null)
-      [[ -n "$CAND" ]] && "$CAND" --version >/dev/null 2>&1 && { PYTHON="$CAND"; break; }
-    done
-  fi
-else
+fi
+
+if [[ -z "$PYTHON" ]]; then
   for name in python3 python; do
     CAND=$(which "$name" 2>/dev/null)
-    [[ -n "$CAND" ]] && "$CAND" --version >/dev/null 2>&1 && { PYTHON="$CAND"; break; }
+    if [[ -n "$CAND" ]] && [[ "$CAND" != *"/WindowsApps/"* ]]; then
+      "$CAND" --version >/dev/null 2>&1 && { PYTHON="$CAND"; break; }
+    fi
   done
 fi
 
@@ -82,117 +60,75 @@ echo "PYTHON=$PYTHON"
 [[ -n "$PYTHON" ]] && "$PYTHON" --version 2>&1 | head -1 || true
 ```
 
-If Python is found, run the repo probe from the project root:
+If no interpreter is found, recommend Miniforge, stop, and give the exact
+install command for the current platform.
+
+### 2. Audit With The Shared Engine
+
+Run:
 
 ```bash
-"<PYTHON>" tools/onboard_probe.py
+"<PYTHON>" tools/bootstrap.py audit
 ```
 
-Parse the JSON output and print a short discovery table covering:
+Read the audit output and summarize the gaps before changing anything.
 
-- platform
-- Python path and version
-- `psql`
-- `pdflatex`
-- `R`
-- `git`
-- `gh`
-- `ssh`
-- required Python packages
-- WRDS file status
+### 3. Execute The Bootstrap Plan
 
-## Phase 2: Fix Missing Components
-
-Only fix what is missing. Before doing so, print a short itemized plan of the missing components and the actions you will take.
-
-### If Python is missing
-
-Ask the user once which distribution they want. Recommend Miniforge.
-
-#### Miniforge (recommended)
-
-Windows:
+After summarizing the audit output, run:
 
 ```bash
-curl -L -o /tmp/Miniforge3.exe "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Windows-x86_64.exe"
-start //wait "" /tmp/Miniforge3.exe /InstallationType=JustMe /AddToPath=0 /RegisterPython=0 /S /D=$(cygpath -w "$HOME/miniforge3")
+"<PYTHON>" tools/bootstrap.py audit --json
 ```
 
-macOS:
+Read `bootstrap_plan.steps` from the audit payload and execute each required
+command for the current shell in order.
+
+The plan is the source of truth for:
+
+- missing Python packages
+- missing or external repo package installs
+- `tools/bootstrap.py apply`
+- the final rerun of `tools/bootstrap.py audit`
+
+If direct command execution is not available because you are running in a plain
+local terminal without agent approvals, you may use the best-effort convenience
+fallback:
 
 ```bash
-if [[ "$(uname -m)" == "arm64" ]]; then
-  curl -L -o /tmp/Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh"
-else
-  curl -L -o /tmp/Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-x86_64.sh"
-fi
-bash /tmp/Miniforge3.sh -b -p "$HOME/miniforge3"
+"<PYTHON>" tools/bootstrap.py repair --write-local-files
 ```
 
-Linux:
+### 4. Manual Gaps The Shared Engine Cannot Finish Alone
+
+If the bootstrap plan or fallback repair step cannot install Python packages automatically:
 
 ```bash
-curl -L -o /tmp/Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh"
-bash /tmp/Miniforge3.sh -b -p "$HOME/miniforge3"
+"<PYTHON>" -m pip install --no-compile pandas psycopg2-binary pyarrow numpy matplotlib statsmodels
 ```
 
-After installation, re-run Phase 1 discovery before continuing.
-
-### If required Python packages are missing
-
-Install them with the discovered interpreter:
+If the bootstrap plan or fallback repair step cannot reinstall repo packages automatically:
 
 ```bash
-"<PYTHON>" -m pip install pandas psycopg2-binary pyarrow numpy matplotlib statsmodels
+"<PYTHON>" -m pip install --no-compile -e .
+cd packages/PyBondLab && "<PYTHON>" -m pip install --no-compile -e ".[performance]"
 ```
 
-### If the shared repo packages are not installed
-
-Install from the project root using the discovered interpreter:
+If `psql` is missing, install the PostgreSQL client with the platform-appropriate
+package manager, then rerun:
 
 ```bash
-"<PYTHON>" -m pip install -e .
+"<PYTHON>" tools/bootstrap.py audit
 ```
 
-Then install PyBondLab:
-
-```bash
-cd packages/PyBondLab && "<PYTHON>" -m pip install -e ".[performance]"
-```
-
-### If `psql` is missing
-
-Windows: install a user-local binary build into `$HOME/tools/pgsql`:
-
-```bash
-mkdir -p "$HOME/tools"
-curl -L -o /tmp/postgresql.zip "https://get.enterprisedb.com/postgresql/postgresql-17.4-1-windows-x64-binaries.zip"
-unzip -q /tmp/postgresql.zip -d "$HOME/tools"
-```
-
-macOS:
-
-- If `brew` exists, ask once before running `brew install libpq`.
-- If `brew` does not exist, stop and tell the user to install Homebrew first.
-
-Linux:
-
-- If `apt-get` exists, ask once before running `sudo apt-get install -y postgresql-client`.
-- If `dnf` exists, ask once before running `sudo dnf install -y postgresql`.
-- Otherwise stop and tell the user which package they need.
-
-After installing `psql`, re-run the probe.
-
-### If WRDS files are missing
-
-Create or repair these files:
+If WRDS files are missing, create or repair:
 
 1. `~/.pg_service.conf`
 2. `~/.pgpass`
-3. `~/.ssh/config` entry for `Host wrds` (optional for basic PostgreSQL, required for SSH/TAQ)
+3. `~/.ssh/config` entry for `Host wrds` if SSH or TAQ workflows are needed
 
-Use the username from `$ARGUMENTS` if provided; otherwise ask once.
-If `~/.pgpass` is missing, ask for the WRDS password and do not echo it back in prose.
+Use the username from `$ARGUMENTS` if provided, otherwise ask once. If
+`~/.pgpass` is missing, ask for the WRDS password and do not echo it back.
 
 `~/.pg_service.conf`
 
@@ -216,127 +152,41 @@ Then:
 chmod 600 ~/.pgpass
 ```
 
-On Windows, also copy both files to `$APPDATA/postgresql/` as:
+On Windows, also copy both files to `$APPDATA/postgresql/` if libpq on that
+machine expects them there.
 
-- `pg_service.conf`
-- `pgpass.conf`
+### 5. Refresh Local Files Only
 
-### Windows Bash setup
-
-If `psql` is installed under `$HOME/tools/pgsql` and `.bashrc` does not already contain the required lines, append only the missing lines:
-
-```bash
-export PATH="$HOME/tools/pgsql/bin:$PATH"
-export PGSERVICEFILE="$HOME/.pg_service.conf"
-```
-
-Do not duplicate lines on re-run.
-
-### Optional tools
-
-- Missing LaTeX: print install guidance only.
-- Missing R: print install guidance only.
-- Missing SSH key `~/.ssh/wrds`: report that SSH/TAQ workflows are not yet configured.
-
-## Phase 3: Verify and Write Local Files
-
-Print `Testing WRDS connectivity...` before running checks.
-
-If `psql`, `~/.pg_service.conf`, and the Python interpreter are present, run:
-
-### Test 1: basic connection
+If you only need to refresh `LOCAL_ENV.md`, `CLAUDE.local.md`, or
+`.claude/settings.local.json` after environment changes, run:
 
 ```bash
-PGSERVICEFILE="<HOME>/.pg_service.conf" "<PSQL>" service=wrds -c "SELECT 1 AS connection_test;"
+"<PYTHON>" tools/bootstrap.py apply
 ```
 
-### Test 2: CRSP query
+This writes or refreshes:
 
-```bash
-PGSERVICEFILE="<HOME>/.pg_service.conf" "<PSQL>" service=wrds -c "SELECT COUNT(*) FROM crsp.dsi WHERE date >= '2024-01-01';"
-```
+- `LOCAL_ENV.md`
+- `CLAUDE.local.md`
+- `.claude/settings.local.json`
 
-### Test 3: full pipeline
+### 6. Final Summary
 
-```bash
-PGSERVICEFILE="<HOME>/.pg_service.conf" "<PSQL>" service=wrds -c "COPY (SELECT date, sprtrn FROM crsp.dsi WHERE date >= '2024-12-01' ORDER BY date LIMIT 5) TO STDOUT WITH CSV HEADER" | "<PYTHON>" -c "import sys,pandas as pd; df = pd.read_csv(sys.stdin); print(f'Pipeline OK: {len(df)} rows, columns: {list(df.columns)}')"
-```
+End with a short status table covering:
 
-If one of these fails, explain exactly which prerequisite is still missing and stop pretending onboarding is complete.
-
-### Write `CLAUDE.local.md`
-
-Write it to the project root. Include:
-
-- tool paths and versions
-- WRDS status
-- canonical command forms for this machine
-- any platform-specific notes
-
-Use this structure:
-
-```markdown
-# Local Environment
-
-## Tool Paths
-| Tool | Path | Version |
-|------|------|---------|
-| Python | <path> | <version> |
-| psql | <path> | <version> |
-| pdflatex | <path or not installed> | <version or blank> |
-| R | <path or not installed> | <version or blank> |
-
-## WRDS
-- Username: <wrds_user or blank>
-- pg_service.conf: OK / MISSING
-- pgpass: OK / MISSING
-- SSH config: OK / MISSING
-- SSH key: OK / MISSING
-
-## Canonical Commands
-- Python: `<python_path>`
-- pip: `<python_path> -m pip`
-- psql: `PGSERVICEFILE="<home>/.pg_service.conf" <psql_path> service=wrds`
-
-## Notes
-- Platform: <platform>
-- Shell: <shell>
-- Re-run `/onboard` after major environment changes.
-```
-
-### Write `.claude/settings.local.json`
-
-If the file already exists, preserve non-Bash entries and replace only the `Bash(...)` entries with the canonical set below.
-
-Canonical Bash allow list:
-
-```json
-[
-  "Bash(<python_path> *)",
-  "Bash(<python_path> -m pip *)",
-  "Bash(<psql_path> *)",
-  "Bash(PGSERVICEFILE=* <psql_path> service=wrds*)"
-]
-```
-
-Add entries only for tools that were actually found.
-
-## Final Summary
-
-End with a short table:
-
-```text
-## Onboarding Complete
-
-| Component | Status |
-|-----------|--------|
-| Python | OK / FAIL |
-| Repo packages | OK / FAIL |
-| psql | OK / FAIL |
-| WRDS connection | OK (3/3) / PARTIAL / FAIL |
-| LaTeX | OK / Not installed |
-| R | OK / Not installed |
-| SSH key | OK / Not configured |
-```
+- Python
+- Repo packages
+- `psql`
+- WRDS connection
+- LaTeX
+- R
+- SSH key
 
 Then list the files written and any remaining manual steps.
+
+### Post-Onboard Note
+
+Tools like `psql` may not be on the shell `PATH` even when installed. After
+onboarding, always use the absolute paths recorded in `LOCAL_ENV.md` (or
+`CLAUDE.local.md`) rather than bare command names. The bootstrap engine
+discovers these paths automatically and writes them to the local files.

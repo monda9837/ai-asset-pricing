@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cross-platform environment probe used by the /onboard skill."""
+"""Shared cross-platform environment probe for bootstrap and onboarding."""
 
 from __future__ import annotations
 
@@ -13,6 +13,9 @@ import subprocess
 import sys
 from glob import glob
 from pathlib import Path
+from typing import Any
+
+sys.dont_write_bytecode = True
 
 
 PACKAGE_NAMES = (
@@ -162,7 +165,7 @@ def bashrc_flags(bashrc: Path, home: Path) -> dict[str, str]:
     }
 
 
-def main() -> int:
+def collect_probe() -> dict[str, Any]:
     home = Path.home()
     pg_service = home / ".pg_service.conf"
     pgpass = home / ".pgpass"
@@ -174,6 +177,7 @@ def main() -> int:
     python_path = str(Path(sys.executable).resolve())
     python_version = platform.python_version()
     pip_command = f'"{python_path}" -m pip'
+    shell = os.environ.get("SHELL") or os.environ.get("ComSpec") or ""
 
     psql_path = detect_psql(home)
     pdflatex_path = detect_pdflatex()
@@ -188,7 +192,7 @@ def main() -> int:
             "system": platform.system(),
             "release": platform.release(),
             "machine": platform.machine(),
-            "shell": os.environ.get("SHELL", ""),
+            "shell": shell,
             "home": str(home),
             "appdata": str(appdata) if appdata else "",
         },
@@ -247,8 +251,16 @@ def main() -> int:
             "bashrc": bashrc_flags(bashrc, home),
         }
 
+    return result
+
+
+def emit_probe_json(result: dict[str, Any]) -> None:
     json.dump(result, sys.stdout, indent=2, sort_keys=True)
     sys.stdout.write("\n")
+
+
+def main() -> int:
+    emit_probe_json(collect_probe())
     return 0
 
 

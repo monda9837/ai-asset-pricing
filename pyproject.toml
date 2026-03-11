@@ -17,3 +17,9 @@ dependencies = [
     "scipy>=1.9",
     "numba>=0.57",
 ]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+include = ["fintools*"]
