@@ -226,8 +226,9 @@ Use `AskUserQuestion` with options:
 
 If **Yes**:
 1. Derive a default paper title from the project name (replace underscores with spaces, title case)
-2. Invoke `/setup-paper` with the derived title, targeting `projects/<name>/latex/`
-3. The user can provide `--authors` and `--topic` at this point if they want
+2. `cd` into `projects/<name>/` so that `/setup-paper` detects it as the active project
+3. Invoke `/setup-paper` with the derived title — it will auto-target `latex/`
+4. The user can provide `--authors` and `--topic` at this point if they want
 
 If **No**, print:
 
