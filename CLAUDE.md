@@ -83,14 +83,30 @@ Read these files before broad repo changes:
 ### Writing and LaTeX
 
 - `/setup-paper` - scaffold a new paper from `boilerplate/template_main.tex` with [REMOVE]-tagged exemplar content
-- `/write-section`
-- `/style-check`
-- `/proofread`
-- `/build-paper`
-- `/build-deck`
-- `/respond-to-referee`
-- `/latex-doctor`
-- `/submission-prep`
+- `/build-context` - generate `guidance/paper-context.md` from user-provided .tex/.md/.pdf files
+- `/write-section` - write a new section following academic writing rules
+- `/edit-section` - revise an existing section for style, clarity, and correctness
+- `/extract-section` - extract a section by key name using `%% BEGIN/END` markers
+- `/style-check` - analyze LaTeX text for style violations
+- `/proofread` - mechanical error scan (typos, formatting, punctuation)
+- `/build-paper` - compile LaTeX to PDF
+- `/build-deck` - create Beamer presentations
+- `/respond-to-referee` - draft response letters and LaTeX edits for referee points
+- `/latex-doctor` - clean and fix .tex files
+- `/submission-prep` - pre-submission checklist for target journals
+
+### Auditing
+
+- `/audit-section` - deep audit of a single section (style, facts, citations, flow)
+- `/audit-captions` - audit all table/figure captions for consistency
+- `/audit-math` - adversarial audit of proofs and formal environments
+- `/full-paper-audit` - audit entire paper (cross-section consistency, all citations, all style)
+- `/check-consistency` - fast cross-section consistency scan for numbers, terminology, references
+- `/outline` - analyze paper structure (section balance, word counts, Cochrane compliance)
+- `/compare-versions` - show diff between old and new text with change rationale
+- `/verify-citations` - verify citation keys exist in .bib and match claims
+- `/research` - search for academic papers using Perplexity MCP
+- `/split-pdf` - split a PDF into sections or page ranges
 
 ### Project Management
 

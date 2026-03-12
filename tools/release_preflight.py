@@ -23,6 +23,7 @@ REQUIRED_FILES = (
     Path(".claude/skills/onboard/SKILL.md"),
     Path(".claude/skills/setup-paper/SKILL.md"),
     Path(".claude/skills/new-project/SKILL.md"),
+    Path(".claude/skills/build-context/SKILL.md"),
     Path("boilerplate/template_main.tex"),
     Path("boilerplate/template_references.bib"),
     Path("docs/ai/core.md"),
@@ -94,6 +95,7 @@ REQUIRED_BOOTSTRAP_SNIPPETS = {
     Path("tools/onboarding_smoke_test.py"): ("validate_packaging_layout", "bootstrap.py apply", "bootstrap_plan"),
     Path(".claude/skills/setup-paper/SKILL.md"): ("boilerplate/template_main.tex", "[REMOVE]", "references.bib"),
     Path(".claude/skills/new-project/SKILL.md"): ("/setup-paper",),
+    Path(".claude/skills/build-context/SKILL.md"): ("guidance/paper-context.md", "guidance/"),
 }
 
 

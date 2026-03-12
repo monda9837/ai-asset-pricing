@@ -28,6 +28,30 @@ venv/
 coverage.xml
 htmlcov/
 
+# R
+.Rhistory
+.Rdata
+.RData
+.Rproj.user/
+*.Rproj
+.Renviron
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+
 # OS
 .DS_Store
 Thumbs.db
