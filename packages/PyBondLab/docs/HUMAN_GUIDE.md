@@ -32,7 +32,8 @@ Appendices:
 ### Installation
 
 ```bash
-pip install PyBondLab
+cd packages/PyBondLab
+pip install -e ".[performance]"
 ```
 
 ### Minimal Example
