@@ -5,9 +5,9 @@ data cleaning stay outside the package unless an example explicitly needs them.
 
 ## Install and Environment
 
-- Use the Python interpreter recorded in `LOCAL_ENV.md`.
-- Install repo utilities with `python -m pip install -e .`
-- Install PyBondLab with `python -m pip install -e ".[performance]"` from `packages/PyBondLab/`
+- Use the Python interpreter recorded in canonical local state from `tools/bootstrap.py audit`.
+- Install repo utilities with `uv pip install --python <python> -e .` (or `python -m pip install -e .`)
+- Install PyBondLab with `uv pip install --python <python> -e ".[performance]"` from `packages/PyBondLab/` (or `python -m pip install -e ".[performance]"`)
 
 ## Routing
 

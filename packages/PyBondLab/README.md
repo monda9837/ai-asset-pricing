@@ -12,7 +12,7 @@ Bug reports and feature requests should be filed in
 
 ```bash
 cd packages/PyBondLab
-pip install -e ".[performance]"
+uv pip install -e ".[performance]"   # or: pip install -e ".[performance]"
 ```
 
 ## Usage

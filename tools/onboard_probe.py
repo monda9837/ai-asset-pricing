@@ -17,6 +17,11 @@ from typing import Any
 
 sys.dont_write_bytecode = True
 
+try:
+    from tools.local_state import local_state_records
+except ImportError:  # pragma: no cover - script execution path
+    from local_state import local_state_records
+
 
 PACKAGE_NAMES = (
     "pandas",
@@ -44,6 +49,20 @@ def run_version(cmd: list[str], first_line_only: bool = True) -> str:
     if not output:
         return ""
     return output.splitlines()[0] if first_line_only else output
+
+
+def command_succeeds(cmd: list[str]) -> bool:
+    try:
+        proc = subprocess.run(
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except Exception:
+        return False
+    return proc.returncode == 0
 
 
 def which(name: str) -> str:
@@ -119,6 +138,13 @@ def detect_r() -> str:
     return ""
 
 
+def detect_bash() -> str:
+    found = which("bash")
+    if found and command_succeeds([found, "-lc", "exit 0"]):
+        return found
+    return ""
+
+
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
@@ -185,7 +211,9 @@ def collect_probe() -> dict[str, Any]:
     git_path = which("git")
     gh_path = which("gh")
     ssh_path = which("ssh")
+    bash_path = detect_bash()
     conda_path = which("conda")
+    uv_path = which("uv")
 
     result = {
         "platform": {
@@ -203,6 +231,10 @@ def collect_probe() -> dict[str, Any]:
             "conda_path": conda_path,
         },
         "tools": {
+            "uv": {
+                "path": uv_path,
+                "version": run_version([uv_path, "--version"]) if uv_path else "",
+            },
             "psql": {
                 "path": psql_path,
                 "version": run_version([psql_path, "--version"]) if psql_path else "",
@@ -227,6 +259,14 @@ def collect_probe() -> dict[str, Any]:
                 "path": ssh_path,
                 "version": run_version([ssh_path, "-V"]) if ssh_path else "",
             },
+            "bash": {
+                "path": bash_path,
+                "version": (
+                    "bash on PATH"
+                    if bash_path and os.name == "nt"
+                    else run_version([bash_path, "--version"]) if bash_path else ""
+                ),
+            },
         },
         "packages": package_versions(),
         "wrds": {
@@ -237,6 +277,7 @@ def collect_probe() -> dict[str, Any]:
             "wrds_user": extract_wrds_user(pg_service),
         },
         "windows": {},
+        "local_state": local_state_records(Path(__file__).resolve().parent.parent),
     }
 
     if os.name == "nt":

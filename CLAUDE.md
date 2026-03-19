@@ -9,11 +9,12 @@ This file is the Claude adapter, not the canonical home for cross-tool policy.
 
 ## Local Environment
 
-`LOCAL_ENV.md` is the canonical machine-local environment note. Claude may also
-maintain `CLAUDE.local.md` as a compatibility mirror.
+Canonical local state lives outside the repo and is reported by
+`tools/bootstrap.py audit`. Repo-root `LOCAL_ENV.md` and `CLAUDE.local.md`
+are optional compatibility shims only.
 
-When running Python, `psql`, LaTeX, R, or other tools, check `LOCAL_ENV.md`
-for the correct paths on this machine.
+When running Python, `psql`, LaTeX, R, or other tools, use the canonical local
+state paths reported by `tools/bootstrap.py audit` for this machine.
 
 Never commit:
 
@@ -23,16 +24,18 @@ Never commit:
 
 New users should run `/onboard`, which wraps the shared `tools/bootstrap.py`
 flow to discover the environment, execute the required bootstrap-plan commands,
-and create the local files Claude needs.
+and create canonical local state outside the repo.
 
 ## Shared Python Package
 
 Reusable Python code lives in `fintools/` at the project root.
 
-Install once with the interpreter from `LOCAL_ENV.md`:
+Install once using the install command from `tools/bootstrap.py audit` (uses `uv`
+when available, falls back to `pip`):
 
 ```bash
-<python-from-LOCAL_ENV.md> -m pip install --no-compile -e .
+uv pip install --no-compile --python <python> -e .
+# or without uv: <python> -m pip install --no-compile -e .
 ```
 
 Import in scripts with `from fintools import ...`.
@@ -41,10 +44,11 @@ Import in scripts with `from fintools import ...`.
 
 PyBondLab lives in `packages/PyBondLab/`.
 
-Install once with the interpreter from `LOCAL_ENV.md`:
+Install once using the install command from `tools/bootstrap.py audit`:
 
 ```bash
-cd packages/PyBondLab && <python-from-LOCAL_ENV.md> -m pip install --no-compile -e ".[performance]"
+cd packages/PyBondLab && uv pip install --no-compile --python <python> -e ".[performance]"
+# or without uv: <python> -m pip install --no-compile -e ".[performance]"
 ```
 
 Import with `import PyBondLab as pbl`.
@@ -120,7 +124,7 @@ Read these files before broad repo changes:
 
 - Prefer `psql service=wrds` over SSH whenever PostgreSQL can handle the task.
 - Use SSH/SAS only for TAQ or remote file management.
-- On Windows, `PGSERVICEFILE` may need to be set explicitly; see `LOCAL_ENV.md`.
+- On Windows, `PGSERVICEFILE` may need to be set explicitly; see the canonical local state from `tools/bootstrap.py audit`.
 - Save extracted datasets under `data/` as Parquet plus `metadata.json`.
 - Never use the interactive `wrds` Python library in automated workflows.
 

@@ -3,24 +3,28 @@
 This repo has one repo-local onboarding engine for both Claude Code and Codex:
 `tools/bootstrap.py`.
 
-## Canonical Local File
+## Canonical Local State
 
-Use `LOCAL_ENV.md` as the shared local environment note. It should contain:
+Canonical local state lives outside the repo in a per-user OS-specific path
+reported by `tools/bootstrap.py audit`. The canonical `local_env.md` should contain:
 
 - platform and shell
 - Python path and version
-- canonical `python -m pip` command
+- bash path and version
+- canonical install command (`uv pip` when available, `python -m pip` as fallback)
 - `psql` path and version
 - WRDS config status
 - any platform-specific notes
 
-`tools/bootstrap.py apply` writes or refreshes:
+`tools/bootstrap.py apply` writes or refreshes canonical external files:
 
-- `LOCAL_ENV.md`
-- `CLAUDE.local.md`
-- `.claude/settings.local.json`
+- `local_env.md`
+- `claude.local.md`
+- `settings.local.json`
 
-`CLAUDE.local.md` may still exist, but only as a compatibility mirror for Claude.
+Repo-root `LOCAL_ENV.md`, `CLAUDE.local.md`, and `.claude/settings.local.json`
+are legacy compatibility shims only. Generate them only when you explicitly need
+single-user backward compatibility inside a private working copy.
 
 ## Shared Bootstrap Flow
 
@@ -29,7 +33,11 @@ Use `LOCAL_ENV.md` as the shared local environment note. It should contain:
 3. Execute the required shell-specific commands listed in the audit report's `bootstrap_plan`.
 4. Run `<python> tools/bootstrap.py apply`.
 5. Re-run `<python> tools/bootstrap.py audit`.
-6. Treat `<python> tools/bootstrap.py repair --write-local-files` as an optional convenience for direct local terminals, not the primary agent path.
+6. Treat `<python> tools/bootstrap.py repair --write-canonical-state` as an optional convenience for direct local terminals, not the primary agent path.
+
+On Windows, if bare `python` hits the Store shim or the wrong install, use the
+exact interpreter path reported by `tools/bootstrap.py audit`. `py` is optional,
+not required.
 
 ## Tool-Specific Entry Points
 
@@ -50,7 +58,7 @@ with exact PowerShell/native and Bash commands for:
 
 - missing Python packages
 - missing or external repo package installs
-- refreshing `LOCAL_ENV.md`, `CLAUDE.local.md`, and `.claude/settings.local.json`
+- refreshing canonical external local state
 - rerunning the audit at the end
 
 Agents should prefer executing those commands directly, because that allows the
@@ -59,8 +67,11 @@ agent runtime to request any needed approvals for package installation.
 ## Rules
 
 - Never assume bare `python` or `pip` are safe on Windows.
-- Prefer a discovered absolute Python path plus `-m pip`.
-- If `LOCAL_ENV.md` is missing, create it before relying on machine-specific commands.
+- Claude hook automation requires `bash` on `PATH`; on Windows, Git Bash is the expected setup.
+- Prefer `uv pip install --python <path>` when uv is available; fall back to `<path> -m pip install`.
+- If canonical local state is missing, create it before relying on machine-specific commands.
 - Prefer `tools/bootstrap.py audit`, its emitted `bootstrap_plan`, and `tools/bootstrap.py apply` over ad hoc local file generation.
-- Keep `tools/bootstrap.py repair --write-local-files` as a convenience fallback for unsandboxed local terminals.
-- If WRDS access is missing, record the missing pieces explicitly instead of pretending onboarding is complete.
+- Keep `tools/bootstrap.py repair --write-canonical-state` as a convenience fallback for unsandboxed local terminals.
+- If the repo lives in Dropbox/OneDrive, keep canonical local state external and avoid repo-root compatibility shims unless the working copy is private to one machine.
+- Dropbox/OneDrive are supported sync layers, not a substitute for Git merge/conflict handling on the same tracked code/config files.
+- If WRDS access is missing, record the missing pieces explicitly but treat onboarding as complete. WRDS is optional — only needed for data extraction workflows.

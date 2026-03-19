@@ -22,15 +22,20 @@ from typing import Any
 
 sys.dont_write_bytecode = True
 
-from onboard_probe import PACKAGE_NAMES, collect_probe
+try:
+    from tools.local_state import compatibility_paths
+    from tools.onboard_probe import PACKAGE_NAMES, collect_probe
+except ImportError:  # pragma: no cover - script execution path
+    from local_state import compatibility_paths
+    from onboard_probe import PACKAGE_NAMES, collect_probe
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-LOCAL_ENV_PATH = REPO_ROOT / "LOCAL_ENV.md"
-CLAUDE_LOCAL_PATH = REPO_ROOT / "CLAUDE.local.md"
-SETTINGS_LOCAL_PATH = REPO_ROOT / ".claude" / "settings.local.json"
 PYBONDLAB_ROOT = REPO_ROOT / "packages" / "PyBondLab"
 IGNORED_CLEANUP_PARTS = {".git", "_release_check"}
+WRDS_SMOKE_COUNT_START = "2022-01-01"
+WRDS_SMOKE_COUNT_END = "2023-01-01"
+WRDS_SMOKE_SAMPLE_START = "2022-12-01"
 
 PACKAGE_INSTALL_SPECS = {
     "pandas": "pandas",
@@ -180,22 +185,21 @@ def bash_in_directory(cwd: Path, parts: list[str], *, disable_bytecode: bool = F
 
 def python_module_probe(python_path: str, import_name: str, *, cwd: Path) -> dict[str, str]:
     code = """
-import importlib
+import importlib.util
 import json
 import sys
 
 result = {}
-try:
-    module = importlib.import_module(sys.argv[1])
-except Exception as exc:
+spec = importlib.util.find_spec(sys.argv[1])
+if spec is None:
     result["status"] = "ERROR"
-    result["detail"] = f"{type(exc).__name__}: {exc}"
+    result["detail"] = "module not found"
 else:
     result["status"] = "OK"
-    result["origin"] = getattr(module, "__file__", "") or ""
-    version = getattr(module, "__version__", "")
-    if version is not None:
-        result["version"] = str(version)
+    origin = spec.origin or ""
+    if not origin and spec.submodule_search_locations:
+        origin = next(iter(spec.submodule_search_locations), "")
+    result["origin"] = str(origin or "")
 print(json.dumps(result))
 """.strip()
     env = os.environ.copy()
@@ -259,21 +263,34 @@ def repo_package_status(probe: dict[str, Any]) -> list[dict[str, str]]:
     return results
 
 
-def local_file_status() -> list[dict[str, str]]:
-    return [
-        {
-            "path": "LOCAL_ENV.md",
-            "status": "OK" if LOCAL_ENV_PATH.exists() else "MISSING",
-        },
-        {
-            "path": "CLAUDE.local.md",
-            "status": "OK" if CLAUDE_LOCAL_PATH.exists() else "MISSING",
-        },
-        {
-            "path": ".claude/settings.local.json",
-            "status": "OK" if SETTINGS_LOCAL_PATH.exists() else "MISSING",
-        },
-    ]
+def canonical_local_file_status(probe: dict[str, Any]) -> list[dict[str, str]]:
+    files = probe["local_state"]["files"]
+    rows: list[dict[str, str]] = []
+    for name, label in (
+        ("local_env", "local_env.md"),
+        ("claude_local", "claude.local.md"),
+        ("settings_local", "settings.local.json"),
+    ):
+        rows.append(
+            {
+                "path": files[name]["canonical_path"],
+                "status": files[name]["canonical_status"],
+            }
+        )
+    return rows
+
+
+def compatibility_file_status(probe: dict[str, Any]) -> list[dict[str, str]]:
+    files = probe["local_state"]["files"]
+    rows: list[dict[str, str]] = []
+    for name in ("local_env", "claude_local", "settings_local"):
+        rows.append(
+            {
+                "path": files[name]["compat_path"],
+                "status": files[name]["compat_status"],
+            }
+        )
+    return rows
 
 
 def validate_csv_sample(output: str) -> tuple[bool, str]:
@@ -334,13 +351,13 @@ def run_wrds_checks(probe: dict[str, Any], *, skip: bool) -> dict[str, Any]:
         "-At",
         "service=wrds",
         "-c",
-        f"SELECT COUNT(*) FROM crsp.dsi WHERE date >= '{datetime.now().year - 1}-01-01';",
+        f"SELECT COUNT(*) FROM crsp.dsi WHERE date >= '{WRDS_SMOKE_COUNT_START}' AND date < '{WRDS_SMOKE_COUNT_END}';",
     ]
     rc, stdout, stderr = run_command(count_cmd, env=env, cwd=REPO_ROOT)
     try:
         row_count = int(stdout)
         count_ok = rc == 0 and row_count >= 1
-        detail = f"{row_count} rows visible in crsp.dsi since {datetime.now().year - 1}-01-01"
+        detail = f"{row_count} rows visible in crsp.dsi from {WRDS_SMOKE_COUNT_START} to {WRDS_SMOKE_COUNT_END}"
     except ValueError:
         count_ok = False
         detail = stderr or stdout or "COUNT query failed"
@@ -360,7 +377,7 @@ def run_wrds_checks(probe: dict[str, Any], *, skip: bool) -> dict[str, Any]:
         "-w",
         "service=wrds",
         "-c",
-        f"COPY (SELECT date, sprtrn FROM crsp.dsi WHERE date >= '{datetime.now().year - 1}-12-01' ORDER BY date LIMIT 5) "
+        f"COPY (SELECT date, sprtrn FROM crsp.dsi WHERE date >= '{WRDS_SMOKE_SAMPLE_START}' AND date < '{WRDS_SMOKE_COUNT_END}' ORDER BY date LIMIT 5) "
         "TO STDOUT WITH CSV HEADER",
     ]
     rc, stdout, stderr = run_command(pipeline_cmd, env=env, cwd=REPO_ROOT)
@@ -381,6 +398,20 @@ def run_wrds_checks(probe: dict[str, Any], *, skip: bool) -> dict[str, Any]:
     return {"status": overall, "checks": checks}
 
 
+def _install_cmd(probe: dict[str, Any], specs: list[str], *, editable: bool = False) -> list[str]:
+    """Return the install command list, preferring uv when available."""
+    python_path = probe["python"]["path"]
+    uv_path = probe["tools"]["uv"]["path"]
+    if uv_path:
+        cmd = [uv_path, "pip", "install", "--no-compile", "--python", python_path]
+    else:
+        cmd = [python_path, "-m", "pip", "install", "--no-compile"]
+    if editable:
+        cmd.append("-e")
+    cmd.extend(specs)
+    return cmd
+
+
 def missing_python_modules(probe: dict[str, Any]) -> list[str]:
     return [name for name, version in probe["packages"].items() if version == "MISSING"]
 
@@ -397,9 +428,9 @@ def repair_python_packages(report: dict[str, Any]) -> list[dict[str, str]]:
         return []
 
     specs = [PACKAGE_INSTALL_SPECS[name] for name in missing_modules]
-    cmd = [probe["python"]["path"], "-m", "pip", "install", "--no-compile", *specs]
+    cmd = _install_cmd(probe, specs)
     rc, stdout, stderr = run_command(cmd, cwd=REPO_ROOT, env=install_subprocess_environment(), timeout=900)
-    detail = stdout.splitlines()[-1] if rc == 0 and stdout else stderr or stdout or "pip install failed"
+    detail = stdout.splitlines()[-1] if rc == 0 and stdout else stderr or stdout or "install failed"
     return [
         {
             "name": "python_packages",
@@ -415,7 +446,7 @@ def repair_repo_packages(report: dict[str, Any]) -> list[dict[str, str]]:
     operations: list[dict[str, str]] = []
     pip_env = install_subprocess_environment()
     for package in installable_repo_packages(report):
-        cmd = [probe["python"]["path"], "-m", "pip", "install", "--no-compile", "-e", package.install_target]
+        cmd = _install_cmd(probe, [package.install_target], editable=True)
         rc, stdout, stderr = run_command(cmd, cwd=package.install_cwd, env=pip_env, timeout=900)
         detail = stdout.splitlines()[-1] if rc == 0 and stdout else stderr or stdout or "editable install failed"
         operations.append(
@@ -438,10 +469,15 @@ def repair_environment(report: dict[str, Any]) -> list[dict[str, str]]:
 
 def power_shell_commands(probe: dict[str, Any]) -> dict[str, str]:
     python_path = probe["python"]["path"]
+    uv_path = probe["tools"]["uv"]["path"]
     pg_service_path = str(preferred_pg_service_path(probe))
+    if uv_path:
+        pip_cmd = f"& {powershell_quote(uv_path)} pip --python {powershell_quote(python_path)}"
+    else:
+        pip_cmd = f"& {powershell_quote(python_path)} -m pip"
     commands = {
         "python": f"& {powershell_quote(python_path)}",
-        "pip": f"& {powershell_quote(python_path)} -m pip",
+        "pip": pip_cmd,
     }
 
     psql_path = probe["tools"]["psql"]["path"]
@@ -457,10 +493,16 @@ def power_shell_commands(probe: dict[str, Any]) -> dict[str, str]:
 
 def bash_commands(probe: dict[str, Any]) -> dict[str, str]:
     python_path = display_bash_path(probe["python"]["path"])
+    uv_path = probe["tools"]["uv"]["path"]
     pg_service_path = display_bash_path(str(preferred_pg_service_path(probe)))
+    if uv_path:
+        bash_uv = display_bash_path(uv_path)
+        pip_cmd = f"{shell_quote(bash_uv)} pip --python {shell_quote(python_path)}"
+    else:
+        pip_cmd = f"{shell_quote(python_path)} -m pip"
     commands = {
         "python": shell_quote(python_path),
-        "pip": f"{shell_quote(python_path)} -m pip",
+        "pip": pip_cmd,
     }
 
     psql_path = probe["tools"]["psql"]["path"]
@@ -475,6 +517,34 @@ def bash_commands(probe: dict[str, Any]) -> dict[str, str]:
     return commands
 
 
+def _plan_install_parts(
+    probe: dict[str, Any],
+    specs: list[str],
+    *,
+    editable: bool = False,
+    use_native_path: bool = True,
+) -> tuple[list[str], list[str]]:
+    """Return (powershell_parts, bash_parts) for an install command in the bootstrap plan."""
+    python_path = probe["python"]["path"]
+    bash_python = display_bash_path(python_path)
+    uv_path = probe["tools"]["uv"]["path"]
+
+    if uv_path:
+        bash_uv = display_bash_path(uv_path)
+        ps_parts = [uv_path, "pip", "install", "--no-compile", "--python", python_path]
+        bash_parts = [bash_uv, "pip", "install", "--no-compile", "--python", bash_python]
+    else:
+        ps_parts = [python_path, "-m", "pip", "install", "--no-compile"]
+        bash_parts = [bash_python, "-m", "pip", "install", "--no-compile"]
+
+    if editable:
+        ps_parts.append("-e")
+        bash_parts.append("-e")
+    ps_parts.extend(specs)
+    bash_parts.extend(specs)
+    return ps_parts, bash_parts
+
+
 def build_bootstrap_plan(report: dict[str, Any]) -> dict[str, Any]:
     probe = report["probe"]
     python_path = probe["python"]["path"]
@@ -485,6 +555,7 @@ def build_bootstrap_plan(report: dict[str, Any]) -> dict[str, Any]:
 
     if missing_modules:
         specs = [PACKAGE_INSTALL_SPECS[name] for name in missing_modules]
+        ps_parts, bash_parts = _plan_install_parts(probe, specs)
         steps.append(
             {
                 "id": "install_python_packages",
@@ -492,14 +563,10 @@ def build_bootstrap_plan(report: dict[str, Any]) -> dict[str, Any]:
                 "required": True,
                 "reason": f"Missing packages: {', '.join(missing_modules)}",
                 "powershell": powershell_in_directory(
-                    REPO_ROOT,
-                    [python_path, "-m", "pip", "install", "--no-compile", *specs],
-                    disable_bytecode=True,
+                    REPO_ROOT, ps_parts, disable_bytecode=True,
                 ),
                 "bash": bash_in_directory(
-                    REPO_ROOT,
-                    [bash_python, "-m", "pip", "install", "--no-compile", *specs],
-                    disable_bytecode=True,
+                    REPO_ROOT, bash_parts, disable_bytecode=True,
                 ),
             }
         )
@@ -509,6 +576,9 @@ def build_bootstrap_plan(report: dict[str, Any]) -> dict[str, Any]:
             (item["status"] for item in report["repo_packages"] if item["label"] == package.label),
             "UNKNOWN",
         )
+        ps_parts, bash_parts = _plan_install_parts(
+            probe, [package.install_target], editable=True,
+        )
         steps.append(
             {
                 "id": f"install_{package.label.lower()}",
@@ -516,14 +586,10 @@ def build_bootstrap_plan(report: dict[str, Any]) -> dict[str, Any]:
                 "required": True,
                 "reason": f"{package.label} status is {package_state}",
                 "powershell": powershell_in_directory(
-                    package.install_cwd,
-                    [python_path, "-m", "pip", "install", "--no-compile", "-e", package.install_target],
-                    disable_bytecode=True,
+                    package.install_cwd, ps_parts, disable_bytecode=True,
                 ),
                 "bash": bash_in_directory(
-                    package.install_cwd,
-                    [bash_python, "-m", "pip", "install", "--no-compile", "-e", package.install_target],
-                    disable_bytecode=True,
+                    package.install_cwd, bash_parts, disable_bytecode=True,
                 ),
             }
         )
@@ -533,7 +599,7 @@ def build_bootstrap_plan(report: dict[str, Any]) -> dict[str, Any]:
         apply_reason = (
             f"Missing local files: {', '.join(missing_local_files)}"
             if missing_local_files
-            else "Refresh LOCAL_ENV.md and Claude compatibility outputs after setup changes"
+            else "Refresh canonical external local-state files after setup changes"
         )
         steps.append(
             {
@@ -579,11 +645,17 @@ def summary_rows(report: dict[str, Any]) -> list[tuple[str, str]]:
     wrds = report["wrds_test"]
     repo_ok = all(item["status"] == "OK" for item in report["repo_packages"])
     wrds_files_ok = preferred_pg_service_path(probe).exists() and probe["wrds"]["pgpass"] == "OK"
+    local_state_ok = all(item["status"] == "OK" for item in report["local_files"])
+    compat_status = "PRESENT" if any(item["status"] == "OK" for item in report["compatibility_files"]) else "ABSENT"
     return [
         ("Python", "OK"),
+        ("uv", "OK" if probe["tools"]["uv"]["path"] else "NOT INSTALLED (optional)"),
         ("Python packages", "OK" if not missing_python_modules(probe) else "PARTIAL"),
         ("Repo packages", "OK" if repo_ok else "PARTIAL"),
-        ("psql", "OK" if probe["tools"]["psql"]["path"] else "FAIL"),
+        ("Local state", "OK" if local_state_ok else "PARTIAL"),
+        ("Repo shims", compat_status),
+        ("Bash", "OK" if probe["tools"]["bash"]["path"] else "FAIL"),
+        ("psql", "OK" if probe["tools"]["psql"]["path"] else "NOT INSTALLED (optional)"),
         ("WRDS files", "OK" if wrds_files_ok else "PARTIAL"),
         ("WRDS connection", wrds["status"]),
         ("LaTeX", "OK" if probe["tools"]["pdflatex"]["path"] else "NOT INSTALLED"),
@@ -596,19 +668,44 @@ def build_actions(report: dict[str, Any]) -> list[str]:
     probe = report["probe"]
     actions: list[str] = []
     plan_steps = report["bootstrap_plan"]["steps"]
+    storage_hint = probe["local_state"]["storage_hint"]
 
     if plan_steps:
         actions.append(
             "Execute the required bootstrap plan commands below. In sandboxed agent sessions, run the shell commands directly so approvals can be requested."
         )
 
+    if storage_hint["kind"] == "synced_folder_candidate":
+        actions.append(
+            f"Repo path looks like a synced folder ({storage_hint['provider']}). Keep canonical local state external; repo-root compatibility shims are unsafe for shared-folder collaboration."
+        )
+
+    if any(item["status"] == "OK" for item in report["compatibility_files"]):
+        actions.append("Remove or avoid repo-root compatibility shims unless you explicitly need legacy Claude/Codex compatibility in a private single-user working copy.")
+
+    if not probe["tools"]["uv"]["path"]:
+        actions.append(
+            "(Recommended) Install uv for faster package installs. "
+            "Windows: `powershell -ExecutionPolicy ByPass -c \"irm https://astral.sh/uv/install.ps1 | iex\"`. "
+            "macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`. "
+            "Then rerun `tools/bootstrap.py audit`."
+        )
+
+    if not probe["tools"]["bash"]["path"]:
+        actions.append("Install or fix Bash on PATH so Claude hook automation can run. On Windows, Git Bash is the expected setup.")
+
     if not probe["tools"]["psql"]["path"]:
-        actions.append("Install the PostgreSQL client so `psql service=wrds` is available.")
+        actions.append(
+            "(Optional \u2013 WRDS only) Install the PostgreSQL client for data extraction. "
+            "Windows: download the zip archive from postgresql.org and extract to ~/tools/pgsql/. "
+            "macOS: `brew install libpq`. "
+            "Do NOT use conda to install psql."
+        )
 
     if not preferred_pg_service_path(probe).exists():
-        actions.append("Create or copy `pg_service.conf` into the location used by this machine.")
+        actions.append("(Optional \u2013 WRDS only) Create or copy `pg_service.conf` into the location used by this machine.")
     if probe["wrds"]["pgpass"] != "OK":
-        actions.append("Create or repair `.pgpass` with your WRDS credentials.")
+        actions.append("(Optional \u2013 WRDS only) Create or repair `.pgpass` with your WRDS credentials.")
 
     if probe["wrds"]["ssh_config"] != "OK":
         actions.append("Add an optional `Host wrds` SSH config entry if you need SSH or TAQ workflows.")
@@ -616,7 +713,7 @@ def build_actions(report: dict[str, Any]) -> list[str]:
         actions.append("Configure the optional WRDS SSH key if you need SSH or TAQ workflows.")
 
     if report["wrds_test"]["status"] == "FAIL":
-        actions.append("Fix WRDS credentials or connectivity, then rerun `tools/bootstrap.py audit`.")
+        actions.append("(Optional \u2013 WRDS only) Fix WRDS credentials or connectivity, then rerun `tools/bootstrap.py audit`.")
 
     if not actions:
         actions.append("No gaps detected. Re-run the bootstrap after major environment changes.")
@@ -631,7 +728,8 @@ def build_report(*, skip_wrds_test: bool) -> dict[str, Any]:
         "probe": probe,
         "preferred_pg_service_file": str(preferred_pg_service_path(probe)),
         "repo_packages": repo_package_status(probe),
-        "local_files": local_file_status(),
+        "local_files": canonical_local_file_status(probe),
+        "compatibility_files": compatibility_file_status(probe),
         "wrds_test": run_wrds_checks(probe, skip=skip_wrds_test),
     }
     report["commands"] = {
@@ -660,20 +758,37 @@ def format_repo_package_row(package: dict[str, str]) -> str:
     return f"| {package['label']} | {package['status']} | {version} | {origin} |"
 
 
-def render_local_env(report: dict[str, Any]) -> str:
+def render_local_env(report: dict[str, Any], *, compatibility_shim: bool = False) -> str:
     probe = report["probe"]
     powershell = report["commands"]["powershell"]
     bash = report["commands"]["bash"]
+    local_state = probe["local_state"]
+    title = "# Local Environment Compatibility Shim" if compatibility_shim else "# Local Environment"
+    intro = (
+        f"`{compatibility_paths(REPO_ROOT)['local_env'].name}` is a legacy compatibility shim. "
+        f"The canonical local environment note lives at `{local_state['files']['local_env']['canonical_path']}`."
+        if compatibility_shim
+        else "This is the canonical machine-local environment note stored outside the repo so shared synced folders remain safe."
+    )
 
     lines = [
-        "# Local Environment",
+        title,
         "",
         f"Generated by `tools/bootstrap.py apply` on {report['generated_at']}.",
+        "",
+        intro,
+        "",
+        "## Local State Paths",
+        f"- Config directory: `{local_state['config_dir']}`",
+        f"- State directory: `{local_state['state_dir']}`",
+        f"- Active local_env source: {local_state['files']['local_env']['active_source']}",
         "",
         "## Tool Paths",
         "| Tool | Path | Version |",
         "|------|------|---------|",
         format_tool_row("Python", probe["python"]["path"], probe["python"]["version"]),
+        format_tool_row("uv", probe["tools"]["uv"]["path"], probe["tools"]["uv"]["version"]),
+        format_tool_row("bash", probe["tools"]["bash"]["path"], probe["tools"]["bash"]["version"]),
         format_tool_row("psql", probe["tools"]["psql"]["path"], probe["tools"]["psql"]["version"]),
         format_tool_row("pdflatex", probe["tools"]["pdflatex"]["path"], probe["tools"]["pdflatex"]["version"]),
         format_tool_row("R", probe["tools"]["r"]["path"], probe["tools"]["r"]["version"]),
@@ -724,19 +839,26 @@ def render_local_env(report: dict[str, Any]) -> str:
             f"- Platform: {probe['platform']['system']} {probe['platform']['release']} ({probe['platform']['machine']})",
             f"- Shell: {probe['platform']['shell'] or 'unknown'}",
             "- Shared bootstrap flow: `tools/bootstrap.py audit`, run the required bootstrap plan commands, then `tools/bootstrap.py apply` and `audit` again",
-            "- `tools/bootstrap.py repair` is a convenience fallback for direct local terminals when agent approval flow is not involved",
+            "- `tools/bootstrap.py repair --write-canonical-state` is a convenience fallback for direct local terminals when agent approval flow is not involved",
+            "- Repo-root compatibility shims are optional and should be avoided in shared Dropbox/OneDrive working trees.",
             "- Re-run `/onboard` or the bootstrap commands after major environment changes.",
         ]
     )
     return "\n".join(lines) + "\n"
 
 
-def render_claude_local(report: dict[str, Any]) -> str:
+def render_claude_local(report: dict[str, Any], *, compatibility_shim: bool = False) -> str:
     bash = report["commands"]["bash"]
+    local_state = report["probe"]["local_state"]
     lines = [
-        "# Claude Local Environment",
+        "# Claude Local Environment Compatibility Shim" if compatibility_shim else "# Claude Local Environment",
         "",
-        "`LOCAL_ENV.md` is the canonical machine-local environment note for this clone.",
+        (
+            f"`CLAUDE.local.md` is a legacy compatibility mirror. The canonical external file lives at "
+            f"`{local_state['files']['claude_local']['canonical_path']}`."
+            if compatibility_shim
+            else "This is the canonical Claude-oriented local environment note stored outside the repo."
+        ),
         "",
         f"Generated by `tools/bootstrap.py apply` on {report['generated_at']}.",
         "",
@@ -748,7 +870,8 @@ def render_claude_local(report: dict[str, Any]) -> str:
         "## Notes",
         "- Use `/onboard` to rerun the shared bootstrap flow from Claude Code.",
         "- The shared flow is `tools/bootstrap.py audit`, run the required bootstrap plan commands, then `tools/bootstrap.py apply` and `audit` again.",
-        "- `tools/bootstrap.py repair` is an optional convenience path for direct local terminals.",
+        "- `tools/bootstrap.py repair --write-canonical-state` is an optional convenience path for direct local terminals.",
+        "- Repo-root compatibility shims are optional and unsafe for shared multi-user synced working trees.",
     ]
     return "\n".join(lines) + "\n"
 
@@ -774,6 +897,16 @@ def bash_allow_entries(probe: dict[str, Any]) -> list[str]:
                 f'Bash("{python_path}" -m pip *)',
             ]
         )
+
+    uv_path = probe["tools"]["uv"]["path"]
+    if uv_path:
+        for candidate in variants(uv_path):
+            entries.extend(
+                [
+                    f"Bash({candidate} pip *)",
+                    f'Bash("{candidate}" pip *)',
+                ]
+            )
 
     psql_path = probe["tools"]["psql"]["path"]
     if psql_path:
@@ -871,8 +1004,8 @@ def cleanup_generated_repo_artifacts() -> list[str]:
     return unique_removed
 
 
-def render_settings_local(report: dict[str, Any]) -> str:
-    current = load_json(SETTINGS_LOCAL_PATH)
+def render_settings_local(report: dict[str, Any], current_path: Path) -> str:
+    current = load_json(current_path)
     if not isinstance(current, dict):
         current = {}
 
@@ -898,18 +1031,39 @@ def render_settings_local(report: dict[str, Any]) -> str:
     return json.dumps(current, indent=2) + "\n"
 
 
-def write_outputs(report: dict[str, Any]) -> list[str]:
+def write_outputs(report: dict[str, Any], *, write_compat_shims: bool = False) -> list[str]:
     written_files: list[str] = []
+    local_state = report["probe"]["local_state"]["files"]
 
-    LOCAL_ENV_PATH.write_text(render_local_env(report), encoding="utf-8")
-    written_files.append("LOCAL_ENV.md")
+    canonical_local_env = Path(local_state["local_env"]["canonical_path"])
+    canonical_claude_local = Path(local_state["claude_local"]["canonical_path"])
+    canonical_settings = Path(local_state["settings_local"]["canonical_path"])
+    active_settings = Path(local_state["settings_local"]["active_path"])
+    settings_source = active_settings if active_settings.exists() else canonical_settings
 
-    CLAUDE_LOCAL_PATH.write_text(render_claude_local(report), encoding="utf-8")
-    written_files.append("CLAUDE.local.md")
+    canonical_local_env.parent.mkdir(parents=True, exist_ok=True)
+    canonical_local_env.write_text(render_local_env(report), encoding="utf-8")
+    written_files.append(str(canonical_local_env))
 
-    SETTINGS_LOCAL_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SETTINGS_LOCAL_PATH.write_text(render_settings_local(report), encoding="utf-8")
-    written_files.append(".claude/settings.local.json")
+    canonical_claude_local.parent.mkdir(parents=True, exist_ok=True)
+    canonical_claude_local.write_text(render_claude_local(report), encoding="utf-8")
+    written_files.append(str(canonical_claude_local))
+
+    canonical_settings.parent.mkdir(parents=True, exist_ok=True)
+    canonical_settings.write_text(render_settings_local(report, settings_source), encoding="utf-8")
+    written_files.append(str(canonical_settings))
+
+    if write_compat_shims:
+        compat = compatibility_paths(REPO_ROOT)
+        compat["local_env"].write_text(render_local_env(report, compatibility_shim=True), encoding="utf-8")
+        written_files.append(str(compat["local_env"]))
+
+        compat["claude_local"].write_text(render_claude_local(report, compatibility_shim=True), encoding="utf-8")
+        written_files.append(str(compat["claude_local"]))
+
+        compat["settings_local"].parent.mkdir(parents=True, exist_ok=True)
+        compat["settings_local"].write_text(render_settings_local(report, compat["settings_local"]), encoding="utf-8")
+        written_files.append(str(compat["settings_local"]))
 
     return written_files
 
@@ -928,6 +1082,7 @@ def print_report(
     cleaned_artifacts: list[str] | None = None,
 ) -> None:
     probe = report["probe"]
+    local_state = probe["local_state"]
 
     print("Scanning your environment...")
     print(f"Repo root: {REPO_ROOT}")
@@ -938,6 +1093,8 @@ def print_report(
         f"({probe['platform']['machine']})"
     )
     print(f"  Python             {probe['python']['path']} ({probe['python']['version']})")
+    print(f"  uv                 {probe['tools']['uv']['path'] or 'not installed'}")
+    print(f"  bash               {probe['tools']['bash']['path'] or 'MISSING'}")
     print(f"  psql               {probe['tools']['psql']['path'] or 'MISSING'}")
     print(f"  pdflatex           {probe['tools']['pdflatex']['path'] or 'not installed'}")
     print(f"  R                  {probe['tools']['r']['path'] or 'not installed'}")
@@ -965,6 +1122,15 @@ def print_report(
     print(f"  ssh_key             {probe['wrds']['ssh_key']}")
     print(f"  wrds_user           {probe['wrds']['wrds_user'] or '(not set)'}")
 
+    print_section("Local State")
+    print(f"  config_dir          {local_state['config_dir']}")
+    print(f"  state_dir           {local_state['state_dir']}")
+    storage_hint = local_state["storage_hint"]
+    if storage_hint["kind"] == "synced_folder_candidate":
+        print(f"  storage_hint        synced folder candidate ({storage_hint['provider']})")
+    else:
+        print("  storage_hint        local or unknown")
+
     print()
     print("Testing WRDS connectivity...")
     if report["wrds_test"]["status"] == "SKIPPED":
@@ -985,8 +1151,12 @@ def print_report(
             print(f"    PowerShell/native: {step['powershell']}")
             print(f"    Bash:              {step['bash']}")
 
-    print_section("Local Files")
+    print_section("Canonical Local State Files")
     for item in report["local_files"]:
+        print(f"  {item['path']:<27} {item['status']}")
+
+    print_section("Repo Compatibility Shims")
+    for item in report["compatibility_files"]:
         print(f"  {item['path']:<27} {item['status']}")
 
     if mode in {"apply", "repair"} and written_files:
@@ -1024,11 +1194,27 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             action="store_true",
             help="Emit structured JSON instead of human-readable output.",
         )
+        if mode == "apply":
+            subparser.add_argument(
+                "--write-compat-shims",
+                action="store_true",
+                help="Also write legacy repo-root compatibility shims for LOCAL_ENV.md, CLAUDE.local.md, and .claude/settings.local.json.",
+            )
         if mode == "repair":
+            subparser.add_argument(
+                "--write-canonical-state",
+                action="store_true",
+                help="Write canonical external local-state files after repair.",
+            )
+            subparser.add_argument(
+                "--write-compat-shims",
+                action="store_true",
+                help="Also write legacy repo-root compatibility shims after repair.",
+            )
             subparser.add_argument(
                 "--write-local-files",
                 action="store_true",
-                help="Write LOCAL_ENV.md, CLAUDE.local.md, and .claude/settings.local.json after repair.",
+                help=argparse.SUPPRESS,
             )
 
     return parser.parse_args(argv)
@@ -1046,11 +1232,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.mode == "repair":
         repair_results = repair_environment(report)
         report = build_report(skip_wrds_test=args.skip_wrds_test)
-        if args.write_local_files:
-            written_files = write_outputs(report)
+        write_compat_shims = args.write_compat_shims or args.write_local_files
+        if args.write_canonical_state or args.write_local_files:
+            written_files = write_outputs(report, write_compat_shims=write_compat_shims)
             report = build_report(skip_wrds_test=args.skip_wrds_test)
     elif args.mode == "apply":
-        written_files = write_outputs(report)
+        written_files = write_outputs(report, write_compat_shims=args.write_compat_shims)
         report = build_report(skip_wrds_test=args.skip_wrds_test)
 
     cleaned_artifacts = cleanup_generated_repo_artifacts()
