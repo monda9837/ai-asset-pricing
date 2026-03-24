@@ -4,30 +4,36 @@
 
 set -uo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/common.sh"
+
 INPUT=$(cat)
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
+REPO_ROOT=$(resolve_repo_root)
+HOOK_PYTHON=$(resolve_hook_python "$REPO_ROOT" || true)
+COMMAND=$(json_tool_input_value "$HOOK_PYTHON" "$INPUT" command || true)
 
 # Only trigger on git commit commands
-echo "$COMMAND" | grep -qE '\bgit\s+commit\b' || exit 0
+[[ "$COMMAND" =~ (^|[[:space:]])git[[:space:]]+commit($|[[:space:]]) ]] || exit 0
 
-REPO_ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || echo .)}"
-
-# Locate Python from LOCAL_ENV.md or fall back to python3/python
-PYTHON=""
-if [[ -f "$REPO_ROOT/LOCAL_ENV.md" ]]; then
-  FOUND=$(grep -oP '(?<=\| Python\s+\| `)[^`]+' "$REPO_ROOT/LOCAL_ENV.md" 2>/dev/null | head -1)
-  [[ -n "$FOUND" && -x "$FOUND" ]] && PYTHON="$FOUND"
-fi
-if [[ -z "$PYTHON" ]]; then
-  PYTHON=$(which python3 2>/dev/null || which python 2>/dev/null || echo "")
-fi
+# Locate Python from canonical external local state or fall back to python3/python
+PYTHON="$HOOK_PYTHON"
 [[ -n "$PYTHON" ]] || exit 0
 
 # Run preflight
 OUTPUT=$("$PYTHON" "$REPO_ROOT/tools/release_preflight.py" --strict 2>&1) || {
-  echo "Release preflight FAILED — commit blocked:" >&2
+  echo "Release preflight FAILED - commit blocked:" >&2
   echo "$OUTPUT" >&2
   exit 2
 }
+
+# Hint about potential documentation drift (informational only)
+if [[ -f "$REPO_ROOT/tools/context_drift.py" ]]; then
+    DRIFT=$("$PYTHON" "$REPO_ROOT/tools/context_drift.py" --brief 2>/dev/null || true)
+    if [[ -n "$DRIFT" ]]; then
+        echo "hint: $DRIFT" >&2
+        echo "hint: Run /sync-context to review." >&2
+    fi
+fi
 
 exit 0

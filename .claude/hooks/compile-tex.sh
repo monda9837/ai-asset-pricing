@@ -1,12 +1,18 @@
 #!/bin/bash
 # PostToolUse hook: auto-recompile LaTeX after any .tex file is edited/written.
 # Finds the nearest main.tex in the same directory and runs the full build cycle.
-# Uses LOCAL_ENV.md paths; falls back to bare pdflatex/bibtex if not found.
+# Uses canonical external local-state paths when available and falls back to PATH.
 
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/common.sh"
+
 INPUT=$(cat)
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.content // empty' 2>/dev/null)
+REPO_ROOT=$(resolve_repo_root)
+HOOK_PYTHON=$(resolve_hook_python "$REPO_ROOT" || true)
+FILE_PATH=$(json_tool_input_value "$HOOK_PYTHON" "$INPUT" file_path path || true)
 
 # Only trigger for .tex files
 [[ "$FILE_PATH" == *.tex ]] || exit 0
@@ -29,18 +35,31 @@ fi
 
 [[ -n "$MAIN_TEX" ]] || exit 0
 
-# Locate pdflatex — try LOCAL_ENV.md, then PATH
 PDFLATEX="pdflatex"
-REPO_ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || echo .)}"
-if [[ -f "$REPO_ROOT/LOCAL_ENV.md" ]]; then
-  FOUND=$(grep -oP '(?<=\| pdflatex\s+\| `)[^`]+' "$REPO_ROOT/LOCAL_ENV.md" 2>/dev/null | head -1)
-  [[ -n "$FOUND" && -x "$FOUND" ]] && PDFLATEX="$FOUND"
+BIBTEX="bibtex"
+
+FOUND=$(local_env_tool_path "$REPO_ROOT" "pdflatex" 2>/dev/null || true)
+if [[ -n "$FOUND" && -x "$FOUND" ]]; then
+  PDFLATEX="$FOUND"
 fi
 
-# Run the full build cycle
+if [[ "$PDFLATEX" != "pdflatex" ]]; then
+  PDFLATEX_DIR=$(cd "$(dirname "$PDFLATEX")" && pwd)
+  if [[ -x "$PDFLATEX_DIR/bibtex" ]]; then
+    BIBTEX="$PDFLATEX_DIR/bibtex"
+  elif [[ -x "$PDFLATEX_DIR/bibtex.exe" ]]; then
+    BIBTEX="$PDFLATEX_DIR/bibtex.exe"
+  fi
+fi
+
+if [[ "$BIBTEX" == "bibtex" ]]; then
+  FOUND=$(command -v bibtex 2>/dev/null || true)
+  [[ -n "$FOUND" ]] && BIBTEX="$FOUND"
+fi
+
 cd "$TEX_DIR"
 "$PDFLATEX" -interaction=nonstopmode main.tex > /dev/null 2>&1 || true
-bibtex main > /dev/null 2>&1 || true
+"$BIBTEX" main > /dev/null 2>&1 || true
 "$PDFLATEX" -interaction=nonstopmode main.tex > /dev/null 2>&1 || true
 "$PDFLATEX" -interaction=nonstopmode main.tex > /dev/null 2>&1 || true
 

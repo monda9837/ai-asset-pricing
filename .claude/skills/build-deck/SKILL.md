@@ -149,7 +149,7 @@ UMD & \emphnum{0.65\%} & \goodnum{0.31\%} & 52\% \\
 
 **ZERO TOLERANCE FOR WARNINGS.**
 
-Use the pdflatex path from `CLAUDE.local.md`:
+Use the pdflatex path from canonical local state reported by `tools/bootstrap.py audit` (or a repo-root `CLAUDE.local.md` compatibility shim if present):
 ```bash
 cd {decks_dir} && pdflatex -interaction=nonstopmode {file}.tex
 ```

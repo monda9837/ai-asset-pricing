@@ -139,7 +139,7 @@ STATUS: [Ready / Needs human review on X]
 3. Opening and closing paragraphs
 
 ### Step 4: Compile and Verify
-1. Run pdflatex + bibtex + pdflatex + pdflatex (paths from `CLAUDE.local.md`)
+1. Run pdflatex + bibtex + pdflatex + pdflatex (paths from canonical local state reported by `tools/bootstrap.py audit`, or a repo-root compatibility shim if present)
 2. Check for undefined citations or references
 3. Read through for tone, completeness, accuracy
 

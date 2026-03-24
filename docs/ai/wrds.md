@@ -8,6 +8,11 @@ Use direct PostgreSQL access for WRDS whenever possible.
 - Use SSH/SAS only for TAQ or WRDS-server file operations.
 - On Windows, `PGSERVICEFILE=... psql` shell syntax does not work. In Python, pass env vars via `subprocess.run(..., env={...})`. In Bash, export first: `export PGSERVICEFILE=... && psql ...`. See `.claude/skills/wrds-psql/SKILL.md` for the full pattern.
 
+> **Installation:** psql is optional for general repo work. If needed:
+> Windows — download the PostgreSQL zip archive from postgresql.org and extract to `~/tools/pgsql/`.
+> macOS — `brew install libpq`. Linux — `apt install postgresql-client`.
+> **Never use conda** to install psql.
+
 ## CRSP Version Policy
 
 **Always use CRSP v2** for all new queries and research:

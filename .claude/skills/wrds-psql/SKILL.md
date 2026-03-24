@@ -69,7 +69,7 @@ result = subprocess.run(
 
 In Bash, export first: `export PGSERVICEFILE="$APPDATA/postgresql/pg_service.conf" && psql service=wrds ...`
 
-Check `LOCAL_ENV.md` for exact paths on this machine.
+Check canonical local state from `tools/bootstrap.py audit` for exact paths on this machine.
 
 ### DUO Two-Factor Authentication
 
@@ -255,7 +255,7 @@ print(f'Saved {len(df)} rows to {outdir}/data.parquet')
 
 ## Instructions
 
-**Python invocation:** Use `python` (not `python3`). If the command fails, check `CLAUDE.local.md` for the full path to the Python executable on this machine (e.g., `C:/Users/name/anaconda3/python.exe` on Windows, `/usr/bin/python3` on Linux).
+**Python invocation:** Use `python` (not `python3`). If the command fails, check canonical local state from `tools/bootstrap.py audit` for the full path to the Python executable on this machine.
 
 When given a query request (`$ARGUMENTS`):
 

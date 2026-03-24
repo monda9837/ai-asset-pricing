@@ -70,7 +70,7 @@ Before presenting the draft, check:
 - [ ] Flag uncertain claims with `[HUMAN EDIT REQUIRED: ...]`
 
 ### Step 6: Compile Check (optional)
-If requested, verify LaTeX compiles using the paths from `CLAUDE.local.md`:
+If requested, verify LaTeX compiles using the paths from canonical local state reported by `tools/bootstrap.py audit` (or a repo-root compatibility shim if present):
 ```bash
 cd {latex_dir} && pdflatex -interaction=nonstopmode {file} && bibtex {stem} && pdflatex -interaction=nonstopmode {file} && pdflatex -interaction=nonstopmode {file}
 ```

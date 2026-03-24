@@ -11,11 +11,17 @@ extraction, PyBondLab factor construction, and academic writing.
 
 ## Local State
 
-These files are machine-local and must never be committed:
+Canonical local state is machine-local and should live outside the repo:
 
-- `LOCAL_ENV.md` - canonical local environment note for both Codex and Claude
-- `CLAUDE.local.md` - Claude compatibility mirror
-- `.claude/settings.local.json` - Claude-only local permissions
+- `local_env.md` - canonical external local environment note for both Codex and Claude
+- `claude.local.md` - canonical external Claude compatibility mirror
+- `settings.local.json` - canonical external Claude-only local permissions
+
+These repo-root files are optional compatibility shims and must never be committed:
+
+- `LOCAL_ENV.md`
+- `CLAUDE.local.md`
+- `.claude/settings.local.json`
 
 ## Project Structure
 
@@ -52,4 +58,7 @@ only parallelize operations known to succeed.
 - Use short lowercase data folder names such as `crsp_monthly_sp500`.
 - Keep data global and project code local; do not copy datasets into project folders.
 - Use `tools/release_preflight.py --strict` before publishing shared changes.
-- When absolute paths matter, use the paths recorded in `LOCAL_ENV.md`.
+- When absolute paths matter, use the canonical local state reported by `tools/bootstrap.py audit`.
+- Run `tools/context_drift.py` to detect stale documentation after code changes.
+- A `SessionStart` hook injects recent activity and drift warnings into every Claude Code session.
+- Use `/sync-context` to review and apply targeted documentation updates.

@@ -25,9 +25,9 @@ Executes batch or single portfolio sorts on the Dickerson bond dataset without s
 ## Execution Steps
 
 1. Parse arguments from the user's `/run` command
-2. Determine the bond data path — look for Dickerson bond parquet in `data/` (check `metadata.json` for datasets from `bonds-wrds-expert`), or use path from CLAUDE.local.md
+2. Determine the bond data path — look for Dickerson bond parquet in `data/` (check `metadata.json` for datasets from `bonds-wrds-expert`), or use the path from canonical local state reported by `tools/bootstrap.py audit`
 3. Generate the Python script from the template below (fill in signals, options, data path)
-4. Execute via single Bash call using the Python path from CLAUDE.local.md
+4. Execute via single Bash call using the Python path from canonical local state reported by `tools/bootstrap.py audit`
 5. Print the **mandatory summary table**:
 
 ```

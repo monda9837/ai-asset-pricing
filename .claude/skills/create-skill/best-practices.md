@@ -202,7 +202,7 @@ Match specificity to the task's fragility:
 | Anti-pattern | Why it's bad | Fix |
 |-------------|-------------|-----|
 | Windows paths (`C:\Users\...`) | Breaks on other platforms | Use forward slashes, `$HOME` |
-| Assuming tools installed | Fails silently on different machines | Check availability or reference `CLAUDE.local.md` |
+| Assuming tools installed | Fails silently on different machines | Check availability or reference canonical local state from `tools/bootstrap.py audit` |
 | Deeply nested references | Claude loses context in chains | Keep ONE level deep from SKILL.md |
 | Menus without defaults | Claude picks randomly | Provide one default with escape hatch |
 | Magic numbers in scripts | No one knows why the value is 30 | Document every constant with justification |

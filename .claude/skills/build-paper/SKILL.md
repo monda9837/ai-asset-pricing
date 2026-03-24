@@ -28,7 +28,7 @@ Compile the paper from LaTeX source to PDF.
 
 ## Commands
 
-Use the pdflatex and bibtex paths from `CLAUDE.local.md`. The general pattern:
+Use the pdflatex and bibtex paths from canonical local state reported by `tools/bootstrap.py audit` (or a repo-root `CLAUDE.local.md` compatibility shim if present). The general pattern:
 
 **Full build:**
 ```bash

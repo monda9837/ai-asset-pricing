@@ -63,6 +63,10 @@ def test_rolling_betas_shape():
 def test_pybondlab_imports():
     """PyBondLab imports without error."""
     import PyBondLab as pbl
+    import PyBondLab.data.WRDS as wrds
+
     assert hasattr(pbl, "StrategyFormation")
     assert hasattr(pbl, "SingleSort")
     assert hasattr(pbl, "DoubleSort")
+    assert pbl.StrategyFormation is not None
+    assert wrds is not None

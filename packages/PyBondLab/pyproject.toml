@@ -7,7 +7,7 @@ name = "PyBondLab"
 version = "0.2.0"
 description = "Portfolio sorting and strategy evaluation for corporate bonds"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.11"
 authors = [
     {name = "Giulio Rossetti", email = "Giulio.Rossetti.1@wbs.ac.uk"},
@@ -16,7 +16,6 @@ authors = [
 keywords = ["corporate bonds", "portfolio sorting", "asset pricing"]
 classifiers = [
     "Development Status :: 4 - Beta",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

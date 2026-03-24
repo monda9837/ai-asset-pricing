@@ -116,6 +116,7 @@ Read these files before broad repo changes:
 
 - `/idea` - adversarial research idea generator: literature survey, WRDS feasibility, research plan
 - `/new-project` - creates project scaffold, then offers to run `/setup-paper`
+- `/sync-context` - detect documentation drift and propose updates to keep context current
 - `/create-skill`
 - `/rule-create`
 - `/create-audit-agent`

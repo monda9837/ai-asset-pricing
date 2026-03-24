@@ -25,7 +25,7 @@ You **delegate domain knowledge questions** to `pybondlab-expert`. You **keep co
 
 ## Environment
 
-Python path and tool paths: check `CLAUDE.local.md` for this machine's configuration.
+Python path and tool paths: check the canonical local state from `tools/bootstrap.py audit` for this machine's configuration.
 Synthetic data: `from PyBondLab.pbl_test import generate_synthetic_data`
 
 ---

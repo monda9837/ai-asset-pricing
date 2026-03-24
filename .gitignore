@@ -4,11 +4,12 @@ CLAUDE.local.md
 .claude/settings.local.json
 
 # Data output
-data/
+/data/
 
 # Temp files
 *.tmp.*
 .tmp-*/
+.test-tmp-*/
 
 # Python
 __pycache__/
@@ -18,8 +19,11 @@ __pycache__/
 *.nbc
 *.nbi
 *.egg-info/
+build/
+dist/
 .ipynb_checkpoints/
 .pytest_cache/
+pytest-cache-files-*/
 .ruff_cache/
 .mypy_cache/
 .venv/
@@ -61,6 +65,9 @@ desktop.ini
 .env
 .env.*
 secrets/
+
+# Build/release check artifacts
+build_check_root/
 
 # Project scratch (large regenerable files)
 projects/*/scripts/tests/*/output/*.csv

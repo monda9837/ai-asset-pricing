@@ -1,33 +1,12 @@
 import warnings
 
-# Core strategy formation
-try:
-    from .PyBondLab import StrategyFormation, load_breakpoints_WRDS
-except ImportError as e:
-    warnings.warn(f"Could not import StrategyFormation: {e}", ImportWarning, stacklevel=2)
-    StrategyFormation = None
-    load_breakpoints_WRDS = None
-
-# Batch processing
-try:
-    from .batch import BatchStrategyFormation, BatchResults, batch_single_sort
-except ImportError as e:
-    warnings.warn(f"Could not import batch processing: {e}", ImportWarning, stacklevel=2)
-    BatchStrategyFormation = BatchResults = batch_single_sort = None
-
-# Batch WithinFirmSort processing
-try:
-    from .batch_withinfirm import BatchWithinFirmSortFormation
-except ImportError as e:
-    warnings.warn(f"Could not import BatchWithinFirmSortFormation: {e}", ImportWarning, stacklevel=2)
-    BatchWithinFirmSortFormation = None
-
-# Strategy classes
-try:
-    from .StrategyClass import SingleSort, DoubleSort, Momentum, LTreversal, WithinFirmSort
-except ImportError as e:
-    warnings.warn(f"Could not import Strategy classes: {e}", ImportWarning, stacklevel=2)
-    SingleSort = DoubleSort = Momentum = LTreversal = WithinFirmSort = None
+# Core strategy formation and strategy classes are required. If any of these
+# imports fail, surface the real import error rather than degrading into a
+# partially usable package with core classes set to None.
+from .PyBondLab import StrategyFormation, load_breakpoints_WRDS
+from .batch import BatchStrategyFormation, BatchResults, batch_single_sort
+from .batch_withinfirm import BatchWithinFirmSortFormation
+from .StrategyClass import SingleSort, DoubleSort, Momentum, LTreversal, WithinFirmSort
 
 
 # Anomaly assayer

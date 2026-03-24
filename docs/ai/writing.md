@@ -7,7 +7,7 @@ automation still lives in `.claude/`.
 
 - Treat academic writing as a separate workflow from data/code changes.
 - Preserve journal-style conventions, citation hygiene, and reproducible builds.
-- Use local tool paths from `LOCAL_ENV.md` when compiling.
+- Use local tool paths from canonical local state reported by `tools/bootstrap.py audit` when compiling.
 - Use the shared boilerplate under `boilerplate/` as the canonical starting point for new papers.
 - Claude Code auto-recompiles nearby `main.tex` files via `.claude/hooks/compile-tex.sh`; Codex users should run the LaTeX build cycle manually after `.tex` edits.
 - When starting from `/new-project`, expect it to offer `/setup-paper` as the paper-setup follow-on step.

@@ -104,7 +104,7 @@ If no `--topic`, leave the template's default filler intact.
 
 ### Phase 7: Compile
 
-Run the standard build cycle using the pdflatex path from `LOCAL_ENV.md`:
+Run the standard build cycle using the pdflatex path from canonical local state reported by `tools/bootstrap.py audit`:
 
 ```bash
 cd {target_dir} && pdflatex -interaction=nonstopmode main.tex && bibtex main && pdflatex -interaction=nonstopmode main.tex && pdflatex -interaction=nonstopmode main.tex

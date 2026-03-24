@@ -385,6 +385,30 @@ class TestResult:
         return cls(**d)
 
 
+class _BaselineResultUnpickler(pickle.Unpickler):
+    """Map legacy script-local pickles back onto the importable TestResult class."""
+
+    def find_class(self, module: str, name: str):
+        if name == "TestResult" and module in {"__main__", "PyBondLab.pbl_test"}:
+            return TestResult
+        return super().find_class(module, name)
+
+
+def _coerce_baseline_results(raw_results: Dict[str, Any]) -> Dict[str, TestResult]:
+    """Normalize baseline payloads loaded from either pickle or JSON."""
+    if not raw_results:
+        return {}
+
+    first_result = next(iter(raw_results.values()))
+    if isinstance(first_result, TestResult):
+        return raw_results
+
+    return {
+        name: TestResult.from_dict(result)
+        for name, result in raw_results.items()
+    }
+
+
 # =============================================================================
 # Test Runner
 # =============================================================================
@@ -876,15 +900,27 @@ def save_baseline_results(results: Dict[str, TestResult], output_dir: Path = RES
     # Save as pickle (for exact floating point preservation)
     pickle_path = output_dir / 'baseline_results.pkl'
     with open(pickle_path, 'wb') as f:
-        pickle.dump(results, f)
+        pickle.dump(json_data, f)
     print(f"Saved pickle results to: {pickle_path}")
 
 
 def load_baseline_results(input_dir: Path = RESULTS_DIR) -> Dict[str, TestResult]:
     """Load baseline results from disk."""
     pickle_path = input_dir / 'baseline_results.pkl'
-    with open(pickle_path, 'rb') as f:
-        return pickle.load(f)
+    json_path = input_dir / 'baseline_results.json'
+
+    if pickle_path.exists():
+        try:
+            with open(pickle_path, 'rb') as f:
+                return _coerce_baseline_results(_BaselineResultUnpickler(f).load())
+        except (AttributeError, EOFError, ModuleNotFoundError, pickle.UnpicklingError):
+            pass
+
+    if json_path.exists():
+        with open(json_path, 'r') as f:
+            return _coerce_baseline_results(json.load(f))
+
+    raise FileNotFoundError(f"No baseline results found in {input_dir}")
 
 
 # =============================================================================

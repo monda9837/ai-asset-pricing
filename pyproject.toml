@@ -7,7 +7,7 @@ name = "fintools"
 version = "0.1.0"
 description = "Shared utilities for empirical asset pricing research"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.11"
 authors = [
     {name = "Alex Dickerson", email = "alexander.dickerson1@unsw.edu.au"},

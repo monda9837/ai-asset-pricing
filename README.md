@@ -21,6 +21,7 @@ docs/ai/                               # Shared cross-tool context
 tools/onboard_probe.py                 # Cross-platform environment probe
 tools/bootstrap.py                    # Shared onboarding audit/apply engine plus repair fallback
 tools/onboarding_smoke_test.py        # Temp-clone onboarding smoke test
+tools/context_drift.py                 # Documentation drift detector
 tools/release_preflight.py             # Release/readiness checker
 fintools/                              # Shared Python utilities
 packages/PyBondLab/                    # Portfolio construction package
@@ -29,19 +30,31 @@ packages/PyBondLab/                    # Portfolio construction package
 ## Prerequisites
 
 - Claude Code with skill support, or Codex with repo-local `AGENTS.md`
-- A POSIX-capable shell for Claude Bash commands
-- Windows users: Git for Windows / Git Bash is recommended
+- Bash on `PATH` for Claude hook automation and Claude Bash commands
+- Windows users running Claude Code should install Git for Windows / Git Bash and ensure `bash` is on `PATH`
 - A WRDS account for database access
 - Internet access for first-run package installation
 
 ## Local Environment Contract
 
-`LOCAL_ENV.md` is the canonical machine-local environment note for both Claude and Codex. It should never be committed.
+The canonical local state now lives **outside the repo** in a per-user OS-specific
+directory reported by `tools/bootstrap.py audit`. This keeps shared
+Dropbox/OneDrive working trees from syncing machine-specific paths across users.
 
-Claude may also generate:
+Repo-root compatibility shims may still be generated when explicitly requested:
 
-- `CLAUDE.local.md` as a compatibility mirror
-- `.claude/settings.local.json` for Claude-only local permissions
+- `LOCAL_ENV.md`
+- `CLAUDE.local.md`
+- `.claude/settings.local.json`
+
+If you use Claude Code, the repo's hook automation assumes `bash` is available.
+The hook scripts no longer depend on `jq` or GNU `grep`.
+
+Mode guidance:
+
+- One clone/copy per user is fully supported.
+- A shared Dropbox/OneDrive working tree is supported only when canonical local state stays external.
+- Dropbox/OneDrive are not a replacement for Git conflict handling and are not safe for simultaneous edits to the same code/config files.
 
 ## First-Time Setup
 
@@ -49,7 +62,7 @@ Claude may also generate:
 
 Run `/onboard`. It is a thin wrapper over the shared `tools/bootstrap.py`
 engine, which audits the machine state, emits the exact setup commands still
-required on that machine, and writes the local files above.
+required on that machine, and writes canonical local state outside the repo.
 
 ### Codex users
 
@@ -64,8 +77,12 @@ If you are not using an agent runtime and want a best-effort convenience path,
 you can also try:
 
 ```bash
-<python> tools/bootstrap.py repair --write-local-files
+<python> tools/bootstrap.py repair --write-canonical-state
 ```
+
+On Windows, do not assume bare `python` is usable. If it resolves to the
+Windows Store shim or the wrong interpreter, use the exact interpreter path
+reported by `tools/bootstrap.py audit`.
 
 ### Manual WRDS files
 
@@ -125,7 +142,7 @@ workflows require a [WRDS](https://wrds-www.wharton.upenn.edu/) account.
 - `fintools` package (rolling betas, panel lags) — pure Python, no data dependency
 - `PyBondLab` package install and import — the API is functional without data
 - LaTeX boilerplate and paper setup
-- Basic test suite: `pytest tests/ -v`
+- Basic test suite: `<python> -B -m pytest tests/ -v -p no:cacheprovider` (use the interpreter path from `tools/bootstrap.py audit`)
 
 **What requires WRDS access:**
 - Data extraction via `psql service=wrds` or SSH

@@ -18,7 +18,7 @@ The "clean room" skill. Run to get a `.tex` file into a consistent, compilable s
 
 ### Step 1: Initial Compile
 
-1. Run the compile command (use pdflatex/bibtex paths from `CLAUDE.local.md`):
+1. Run the compile command (use pdflatex/bibtex paths from canonical local state reported by `tools/bootstrap.py audit`, or a repo-root compatibility shim if present):
    ```bash
    cd {latex_dir} && pdflatex -interaction=nonstopmode {file} && bibtex {stem} && pdflatex -interaction=nonstopmode {file} && pdflatex -interaction=nonstopmode {file}
    ```

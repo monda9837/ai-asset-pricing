@@ -9,9 +9,9 @@ should live in `docs/ai/`.
 ## Core Contract
 
 - Read `docs/ai/core.md` before making cross-cutting repo decisions.
-- When machine-specific paths or tools matter, read `LOCAL_ENV.md` if it exists.
-- Treat `LOCAL_ENV.md` as the canonical local environment file.
-- Treat `CLAUDE.local.md` as a Claude compatibility mirror, not the source of truth.
+- When machine-specific paths or tools matter, use the canonical local state reported by `tools/bootstrap.py audit`.
+- Treat canonical local state as external to the repo by default.
+- Treat repo-root `LOCAL_ENV.md` / `CLAUDE.local.md` as optional compatibility shims, not the source of truth.
 - Never commit `LOCAL_ENV.md`, `CLAUDE.local.md`, or `.claude/settings.local.json`.
 - Run `tools/release_preflight.py --strict` before a shared release.
 
@@ -22,9 +22,9 @@ should live in `docs/ai/`.
   - Use `tools/bootstrap.py audit`
   - Execute the required commands from the audit report's `bootstrap_plan`
   - Use `tools/bootstrap.py apply`
-  - Treat `tools/bootstrap.py repair --write-local-files` as a direct-terminal fallback, not the primary Codex path
+  - Treat `tools/bootstrap.py repair --write-canonical-state` as a direct-terminal fallback, not the primary Codex path
   - Treat `tools/onboard_probe.py` as the shared probe implementation, not the user-facing entry point
-  - Use `LOCAL_ENV.md` if present
+  - Use repo-root compatibility shims only if they were explicitly generated for a private single-user working copy
 - WRDS, data extraction, or query pipelines:
   - Read `docs/ai/wrds.md`
   - CRSP v2 is the default for all new work — see `docs/ai/wrds.md` "CRSP Version Policy"
@@ -46,6 +46,9 @@ should live in `docs/ai/`.
   - Auditing workflows live in `.claude/skills/audit-section/SKILL.md`, `.claude/skills/full-paper-audit/SKILL.md`, `.claude/skills/check-consistency/SKILL.md`, `.claude/skills/audit-captions/SKILL.md`, `.claude/skills/audit-math/SKILL.md`, and `.claude/skills/outline/SKILL.md`
   - Writing rules include `.claude/rules/academic-writing.md`, `.claude/rules/latex-conventions.md`, `.claude/rules/latex-citations.md`, `.claude/rules/banned-words.md`, `.claude/rules/grammar-punctuation.md`, and `.claude/rules/referee-reply.md`
   - Then read the relevant `.claude/skills/*.md` file for the concrete workflow
+- Context maintenance:
+  - Run `tools/context_drift.py` to detect stale documentation
+  - Use `/sync-context` (Claude Code) to review and apply targeted doc updates
 - Editing `.claude/` files:
   - Keep `docs/ai/` authoritative for shared rules
   - Do not duplicate repo-wide guidance if a shared doc already covers it
@@ -57,4 +60,5 @@ should live in `docs/ai/`.
 - Save extracted data under `data/<source>_<short_description>/` as Parquet plus `metadata.json`.
 - In Claude Code sessions, `.claude/hooks/` already handles LaTeX auto-recompile and pre-commit preflight; Codex should stay compatible with those hooks rather than recreate them.
 - Keep machine-local state out of the shared tree.
+- Shared Dropbox/OneDrive working trees require canonical local state to stay external; do not assume sync tools provide safe concurrent-edit semantics for code.
 - Keep project-specific conventions inside each project's own `CLAUDE.md`.

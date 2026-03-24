@@ -86,7 +86,22 @@ from .numba_core import (
 
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
-from PyBondLab.data.WRDS import load
+
+try:
+    from .data.WRDS import load
+except ModuleNotFoundError as exc:
+    missing_name = exc.name or ""
+    if missing_name and not missing_name.startswith(f"{__package__}.data"):
+        raise
+
+    _WRDS_LOAD_IMPORT_ERROR = exc
+
+    def load(*args, **kwargs):
+        raise NotImplementedError(
+            "Bundled WRDS breakpoint data is unavailable in this installation. "
+            "PyBondLab core portfolio formation still works, but "
+            "load_breakpoints_WRDS() cannot be used."
+        ) from _WRDS_LOAD_IMPORT_ERROR
 
 Number = Union[int, float]
 SubsetFilter = Dict[str, Tuple[Number, Number]]
