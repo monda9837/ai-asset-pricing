@@ -37,7 +37,6 @@ try:
     from .turnover_tracking import (
         TurnoverLogger,
         compute_turnover_diagnostic,
-        classify_turnover_case
     )
     TRACKING_AVAILABLE = True
 except ImportError:

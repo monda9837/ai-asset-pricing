@@ -311,7 +311,7 @@ if NUMBA_AVAILABLE:
             # if singular, solve may fail; ridge usually prevents that
             try:
                 b = np.linalg.solve(A, Zy)
-            except:
+            except np.linalg.LinAlgError:
                 continue
 
             betas[i, :] = b

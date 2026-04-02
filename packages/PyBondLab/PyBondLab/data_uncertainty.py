@@ -43,13 +43,9 @@ from __future__ import annotations
 
 import time
 import warnings
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Union, Any, Tuple
-from numbers import Number
-
-# Type alias for subset filter
-SubsetFilter = Dict[str, Tuple[float, float]]
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Union, Any, Tuple
 import platform
 
 import numpy as np
@@ -58,6 +54,9 @@ import pandas as pd
 # Import PyBondLab components
 from .PyBondLab import StrategyFormation
 from .StrategyClass import SingleSort, Momentum, LTreversal
+
+# Type alias for subset filter
+SubsetFilter = Dict[str, Tuple[float, float]]
 
 
 # =============================================================================
@@ -1345,8 +1344,6 @@ class DataUncertaintyAnalysis:
             Prepared data with standardized column names
         """
         # Build reverse mapping: user_col_name -> pbl_name
-        user_to_pbl = {v: k for k, v in self.columns.items()}
-
         # Determine which columns are needed
         needed_pbl_cols = set(REQUIRED_COLUMNS)
 
@@ -1940,7 +1937,7 @@ class DataUncertaintyAnalysis:
             n_signals = len(self.signals)
             total_configs = n_signals * n_ratings * n_filters * n_hps
             if self.verbose:
-                print(f"DataUncertaintyAnalysis FAST PATH")
+                print("DataUncertaintyAnalysis FAST PATH")
                 print(f"  {n_signals} signals x {n_filters} filters x {n_hps} HPs = {total_configs} configurations")
                 print(f"  Processing {n_signals} signals sequentially")
                 print(f"  Signals: {self.signals}")
@@ -2483,7 +2480,6 @@ class DataUncertaintyAnalysis:
         id_sorted = id_idx[sort_idx]
         date_sorted = date_idx[sort_idx]
         ret_sorted = ret[sort_idx]
-        filtered_sorted = filtered_returns[sort_idx, :]
 
         # Get bond boundaries
         bond_starts = get_bond_boundaries(id_sorted)

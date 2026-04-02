@@ -17,7 +17,7 @@ The plain-Python equivalents in utils.py are kept as fallback / reference.
 import numpy as np
 import pandas as pd
 from typing import Tuple, Union, Optional, List, Callable
-from numba import njit, prange
+from numba import njit
 
 # ============================================================================
 # Optimized Threshold Computation

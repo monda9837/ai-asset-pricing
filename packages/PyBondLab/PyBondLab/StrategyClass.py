@@ -16,10 +16,12 @@ Docs: docs/API_REFERENCE.md
 """
 
 import numpy as np
-import logging
 from typing import Optional, List, Union, Callable
 from abc import ABC, abstractmethod
+from importlib.util import find_spec
 import warnings
+
+NUMBA_AVAILABLE = find_spec("numba") is not None
 
 
 #==============================================================================
@@ -503,7 +505,7 @@ class DoubleSort(Strategy):
                 return len(breakpoints) + 1
             elif num_portfolios != len(breakpoints) + 1:
                 raise ValueError(
-                    f"If breakpoints provided, num_portfolios must equal len(breakpoints)+1"
+                    "If breakpoints provided, num_portfolios must equal len(breakpoints)+1"
                 )
             return num_portfolios
 
@@ -773,8 +775,6 @@ class Momentum(Strategy):
 
                 cumlogret = group['cumlogret'].values
                 cumvalid = group['cumvalid'].values
-                logret = group['logret'].values
-
                 for i in range(n):
                     if np.isnan(cumvalid[i]) or cumvalid[i] < J:
                         continue
@@ -1292,10 +1292,9 @@ class WithinFirmSort(Strategy):
         self.breakpoints = None
 
         # Store numba function reference
-        try:
-            from numba import njit
+        if NUMBA_AVAILABLE:
             self._numba_available = True
-        except ImportError:
+        else:
             self._numba_available = False
             if verbose:
                 warnings.warn("numba not available. Within-firm sorting will be slower.", UserWarning, stacklevel=2)

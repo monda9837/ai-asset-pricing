@@ -32,7 +32,6 @@ Last modified: 2024
 """
 
 import sys
-import os
 import time
 import json
 import pickle
@@ -54,13 +53,12 @@ warnings.filterwarnings('ignore')
 _this_dir = Path(__file__).parent
 sys.path.insert(0, str(_this_dir.parent))
 
-from PyBondLab.PyBondLab import StrategyFormation
-from PyBondLab.StrategyClass import SingleSort, DoubleSort
-from PyBondLab.config import (
+from PyBondLab.PyBondLab import StrategyFormation  # noqa: E402
+from PyBondLab.StrategyClass import SingleSort, DoubleSort  # noqa: E402
+from PyBondLab.config import (  # noqa: E402
     StrategyFormationConfig,
     DataConfig,
-    FormationConfig,
-    FilterConfig
+    FormationConfig
 )
 
 # =============================================================================
@@ -529,7 +527,6 @@ def run_single_test(
 
     # Portfolio labels
     ptf_labels = list(ew_ret_df.columns)
-    n_ptf = len(ptf_labels)
 
     # Compute mean returns by portfolio
     ew_returns_by_ptf = [float(ew_ret_df[col].mean()) for col in ptf_labels]
@@ -641,13 +638,13 @@ def compare_results(baseline: TestResult, new_result: TestResult, tol: float = T
         print(f"  FAIL: EW L-S mean differs by {ew_diff:.2e}")
         all_passed = False
     else:
-        print(f"  PASS: EW L-S mean matches")
+        print("  PASS: EW L-S mean matches")
 
     if vw_diff > tol:
         print(f"  FAIL: VW L-S mean differs by {vw_diff:.2e}")
         all_passed = False
     else:
-        print(f"  PASS: VW L-S mean matches")
+        print("  PASS: VW L-S mean matches")
 
     # Compare portfolio returns
     for i, (b_ew, n_ew) in enumerate(zip(baseline.ew_returns_by_ptf, new_result.ew_returns_by_ptf)):
@@ -659,7 +656,7 @@ def compare_results(baseline: TestResult, new_result: TestResult, tol: float = T
     # Compare turnover if applicable
     if baseline.ew_turnover_mean is not None:
         if new_result.ew_turnover_mean is None:
-            print(f"  FAIL: EW turnover missing in new result")
+            print("  FAIL: EW turnover missing in new result")
             all_passed = False
         else:
             to_diff = abs(baseline.ew_turnover_mean - new_result.ew_turnover_mean)
@@ -667,7 +664,7 @@ def compare_results(baseline: TestResult, new_result: TestResult, tol: float = T
                 print(f"  FAIL: EW turnover differs by {to_diff:.2e}")
                 all_passed = False
             else:
-                print(f"  PASS: EW turnover matches")
+                print("  PASS: EW turnover matches")
 
     if baseline.vw_turnover_mean is not None and new_result.vw_turnover_mean is not None:
         to_diff = abs(baseline.vw_turnover_mean - new_result.vw_turnover_mean)
@@ -675,7 +672,7 @@ def compare_results(baseline: TestResult, new_result: TestResult, tol: float = T
             print(f"  FAIL: VW turnover differs by {to_diff:.2e}")
             all_passed = False
         else:
-            print(f"  PASS: VW turnover matches")
+            print("  PASS: VW turnover matches")
 
     # Compare characteristics if applicable
     if baseline.chars_ew_means is not None:

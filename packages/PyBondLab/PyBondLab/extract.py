@@ -9,7 +9,7 @@ Dependencies: naming (NamingConfig, make_factor_name)
 
 from __future__ import annotations
 
-from typing import Optional, Union, List, Dict, Any
+from typing import Optional
 import numpy as np
 import pandas as pd
 

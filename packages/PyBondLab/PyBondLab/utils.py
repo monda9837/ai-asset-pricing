@@ -165,7 +165,7 @@ def validate_panel(
             UserWarning
         )
         if verbose:
-            print(f"Panel validation: WARNING")
+            print("Panel validation: WARNING")
             print(f"  - {n_rows_original:,} total rows")
             print(f"  - {n_duplicates:,} duplicate {id_col}-{date_col} pairs found")
             print(f"  - Example duplicates: {examples[:3]}")
@@ -176,7 +176,7 @@ def validate_panel(
         n_rows_after = len(result_data)
 
         if verbose:
-            print(f"Panel validation: FIXED")
+            print("Panel validation: FIXED")
             print(f"  - {n_rows_original:,} original rows")
             print(f"  - {n_duplicates:,} duplicate rows removed (kept='{keep}')")
             print(f"  - {n_rows_after:,} rows remaining")

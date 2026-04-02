@@ -12,20 +12,15 @@ Dependencies: numba_core, batch_base, PyBondLab
 Docs: docs/API_REFERENCE.md
 """
 
-import os
-import sys
 import gc
-import platform
-import warnings
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Union, Tuple, Callable
-from collections import OrderedDict
-
-# Type alias for subset_filter
-SubsetFilter = Dict[str, Tuple[float, float]]
-import time
 import multiprocessing as mp
-from concurrent.futures import ProcessPoolExecutor, as_completed
+import platform
+import time
+import warnings
+from concurrent.futures import ProcessPoolExecutor
+from collections import OrderedDict
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Any, Union, Tuple
 
 import numpy as np
 import pandas as pd
@@ -36,14 +31,10 @@ import pandas as pd
 
 from .batch_base import (
     _get_start_method,
-    _is_windows,
     TQDM_AVAILABLE,
     tqdm,
     REQUIRED_COLUMNS,
     DEFAULT_COLUMNS,
-    _estimate_memory_components,
-    _estimate_peak_memory_mb,
-    _get_available_memory_mb,
     _suggest_parallel_config,
     _print_memory_config,
 )
@@ -53,6 +44,9 @@ from .PyBondLab import StrategyFormation
 from .StrategyClass import SingleSort
 from .config import StrategyFormationConfig, DataConfig, FormationConfig
 from .results import FormationResults
+
+# Type alias for subset_filter
+SubsetFilter = Dict[str, Tuple[float, float]]
 
 
 # =============================================================================
@@ -1041,9 +1035,7 @@ class BatchStrategyFormation:
         freq = self.rebalance_frequency
         if isinstance(freq, str):
             freq_str = freq
-            freq_months = {'quarterly': 3, 'semi-annual': 6, 'annual': 12}.get(freq, 1)
         else:
-            freq_months = freq
             freq_str = {3: 'quarterly', 6: 'semi-annual', 12: 'annual'}.get(freq, f'{freq}m')
 
         filter_desc = []
@@ -1387,7 +1379,7 @@ class BatchStrategyFormation:
         remaining_signals = self.signals[1:]
 
         if self.verbose:
-            print(f"  Running first signal (warmup)...")
+            print("  Running first signal (warmup)...")
 
         t0 = time.time()
         try:
@@ -1559,7 +1551,7 @@ class BatchStrategyFormation:
                                 results.errors[sig_name] = error
                             completed += 1
                             if self.verbose and not TQDM_AVAILABLE:
-                                status = "OK" if error is None else f"ERROR"
+                                status = "OK" if error is None else "ERROR"
                                 print(f"  [{offset + completed}/{total}] {sig_name}: {status}")
 
                     except Exception as e:

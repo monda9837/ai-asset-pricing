@@ -15,49 +15,33 @@ Docs: docs/MODULE_MAP.md, docs/API_REFERENCE.md
 @authors: Giulio Rossetti & Alex Dickerson
 """
 
-from dataclasses import dataclass
-from typing import Optional, Dict, Tuple, Union, Any, List
+from typing import Optional, Dict, Tuple, Union
 import warnings
 
 import numpy as np
 import pandas as pd
 
 from .FilterClass import Filter
-from .StrategyClass import *
+from .StrategyClass import Strategy
 
 from .config import (
-    StrategyFormationConfig,
-    DataConfig,
-    FormationConfig,
-    FilterConfig
+    StrategyFormationConfig
 )
 from .constants import (
     Defaults,
     ColumnNames,
-    RatingBounds,
     ValidationMessages,
     get_rating_bounds,
-    get_portfolio_labels,
     get_signal_based_labels
 )
 
 from .utils import summarize_ranks, _get_rebalancing_dates
 from .precompute import PrecomputedData, PrecomputeBuilder
-from .utils_portfolio import (
-    compute_portfolio_ranks,
-    form_portfolio_single_period,
-    apply_banding,
-    calculate_qnew_vectorized
-)
 
 # from .iotools.PyBondLabResults import StrategyResults
 from .results import build_strategy_results, build_formation_results
 
 
-from .utils import (
-    summarize_ranks,
-    _get_rebalancing_dates,
-)
 
 # Turnover utils
 from .utils_turnover import TurnoverManager
@@ -69,13 +53,6 @@ from .numba_core import (
     compute_scaled_weights_single,
     compute_characteristics_single,
     # Fast returns-only path
-    compute_all_dates_returns_fast,
-    compute_staggered_returns_fast,
-    precompute_formation_ranks,
-    build_rank_lookup_fast,
-    align_ranks_for_returns_fast,
-    align_ranks_staggered_fast,
-    # Ultra-fast path (bypasses pandas)
     compute_ranks_all_dates_fast,
     compute_ranks_with_custom_thresholds,
     compute_all_returns_ultrafast,
@@ -84,8 +61,6 @@ from .numba_core import (
     build_vw_lookup,
 )
 
-import statsmodels.api as sm
-import matplotlib.pyplot as plt
 
 try:
     from .data.WRDS import load
@@ -126,23 +101,6 @@ if NUMBA_AVAILABLE:
 else:
     def _sum_min_prev_raw(prev_vec, pos, raw_w):
         return float(np.minimum(prev_vec[pos], raw_w).sum())
-
-
-# =============================================================================
-# Precomputation Data Structure
-# =============================================================================
-@dataclass
-class PrecomputedData:
-    """Container for precomputed time-series data."""
-    It0: Dict[pd.Timestamp, pd.DataFrame]   # Data at portfolio formation time
-    It1: Dict[pd.Timestamp, pd.DataFrame]   # Data at return realization time
-    It1m: Dict[pd.Timestamp, pd.DataFrame]  # Data for dynamic weights
-    ranks_map: Dict[pd.Timestamp, pd.Series]  # Precomputed ranks
-    vw_map_t0: Dict[pd.Timestamp, pd.Series]  # Value weights at t
-    vw_map_t1m: Dict[pd.Timestamp, pd.Series]  # Value weights at t+h-1
-
-
-
 # =============================================================================
 # Main StrategyFormation Class
 # =============================================================================
@@ -1350,7 +1308,6 @@ class StrategyFormation:
 
         # Initialize characteristics arrays if requested
         if self.chars:
-            num_chars = len(self.chars)
             ew_chars_arr = {c: np.full((TM, self.hor, tot_nport), np.nan) for c in self.chars}
             vw_chars_arr = {c: np.full((TM, self.hor, tot_nport), np.nan) for c in self.chars}
         else:

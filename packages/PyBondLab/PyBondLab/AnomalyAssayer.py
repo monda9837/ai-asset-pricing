@@ -20,8 +20,7 @@ Docs         : docs/AnomalyAssay_README.md
 from __future__ import annotations
 
 import math
-import warnings
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union, Callable
+from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 from functools import partial
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import time
@@ -33,7 +32,6 @@ import statsmodels.api as sm
 from PyBondLab.PyBondLab import StrategyFormation
 from PyBondLab.StrategyClass import Strategy, SingleSort
 from PyBondLab.visualization.plotting import PerformancePlotter
-from PyBondLab.constants import get_rating_bounds
 
 Number = Union[int, float]
 SubsetFilter = Dict[str, List[Tuple[Number, Number]]]

@@ -21,7 +21,7 @@ import pandas as pd
 from typing import Dict, Tuple, Optional, List
 from dataclasses import dataclass
 
-from .constants import ColumnNames, NumericConstants
+from .constants import ColumnNames
 # Use numba-optimized versions for performance (2-5x faster)
 from .utils_optimized import (
     assign_bond_bins_optimized as assign_bond_bins,

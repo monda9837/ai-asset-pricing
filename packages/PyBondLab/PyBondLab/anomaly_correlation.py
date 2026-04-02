@@ -10,10 +10,15 @@ Dependencies: numpy, pandas, matplotlib (optional), seaborn (optional)
 Authors: Giulio Rossetti & Alex Dickerson
 """
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
-from typing import Optional, List, Union, Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
 import warnings
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
 
 
 # @entrypoint
@@ -250,7 +255,7 @@ def plot_correlation_heatmap(
     vmax: float = 1.0,
     annot: bool = False,
     **kwargs
-) -> "matplotlib.figure.Figure":
+) -> Figure:
     """
     Plot correlation matrix as heatmap.
 

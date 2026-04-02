@@ -16,7 +16,7 @@ import numpy as np
 import psycopg2
 import PyBondLab as pbl
 from PyBondLab.report import ResultsReporter
-from pandas.tseries.offsets import MonthEnd, YearEnd
+from pandas.tseries.offsets import MonthEnd
 import os
 
 SCRIPT = """FF3 WRDS-aligned: CIZ, permco ME, Dec ME for BtM, 2yr Compustat, dynamic weights"""

@@ -17,7 +17,7 @@ Authors: Giulio Rossetti & Alex Dickerson
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional, Dict, Any, Union, Tuple
 import numpy as np
 import pandas as pd
@@ -27,7 +27,6 @@ from PyBondLab.naming import (
     NamingConfig,
     make_factor_name,
     make_portfolio_name,
-    rating_to_suffix,
 )
 
 
@@ -901,7 +900,7 @@ class FormationResults:
                     "Use filters={'adj': 'trim', 'level': 0.2} when creating StrategyFormation."
                 )
             else:
-                raise ValueError(f"Ex-ante (EA) results not available.")
+                raise ValueError("Ex-ante (EA) results not available.")
         return sr
 
     # ------------------------------ Accessors ------------------------------ #

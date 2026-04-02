@@ -18,7 +18,8 @@ Dependencies: (none -- standalone utility)
 from typing import Dict, List, Tuple, Optional, Union, Callable, Any
 from dataclasses import dataclass, field
 from enum import Enum
-import warnings
+
+import pandas as pd
 
 
 # @internal
@@ -665,7 +666,7 @@ def validate_specs(
 
     if raise_on_error and not result.is_valid:
         error_msgs = [str(e) for e in result.errors]
-        raise ValueError(f"Specification validation failed:\n" + "\n".join(error_msgs))
+        raise ValueError("Specification validation failed:\n" + "\n".join(error_msgs))
 
     return result
 

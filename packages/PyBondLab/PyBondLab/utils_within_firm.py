@@ -427,7 +427,6 @@ def compute_within_firm_returns_aggregation(
     low_returns = []
     long_short_factors = []  # The actual H-L factors computed firm-by-firm
     dates_with_data = []
-    rating_factors = {1: [], 2: [], 3: []}  # Store by rating tercile
 
     # Process each date
     for date_t in datelist:

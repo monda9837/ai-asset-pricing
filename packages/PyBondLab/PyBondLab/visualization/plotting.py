@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy.stats import gaussian_kde
-from typing import Sequence, Optional, Union, Tuple, List, Any
-from ._latex import set_latex, _esc
+from typing import Sequence, Optional, Union, Tuple, List
+from ._latex import _esc
 
 # @entrypoint
 class PerformancePlotter:

@@ -12,9 +12,10 @@ Authors: Giulio Rossetti & Alex Dickerson
 
 import numpy as np
 import pandas as pd
-from enum import Enum, auto
+from enum import Enum
 from dataclasses import dataclass, asdict
 from typing import Optional, Tuple, Dict, List
+from pathlib import Path
 import warnings
 
 # =============================================================================
@@ -509,20 +510,17 @@ class TurnoverLogger:
 
         # Print key findings
         print(f"\n{'='*80}")
-        print(f"TURNOVER TRACKING SUMMARY")
+        print("TURNOVER TRACKING SUMMARY")
         print(f"{'='*80}")
         print(f"Total observations: {summary['total_observations']}")
         print(f"Zero turnover cases: {summary['n_zero_turnover']}")
         print(f"Exact zero cases: {summary['n_exact_zero']}")
         print(f"Near-zero suspicious: {case_counts.get(TurnoverCase.NEAR_ZERO_SUSPICIOUS.name, 0)}")
-        print(f"\nTurnover distribution:")
+        print("\nTurnover distribution:")
         print(f"  Mean: {summary['turnover_mean']:.6f}")
         print(f"  Median: {summary['turnover_median']:.6f}")
         print(f"  Min: {summary['turnover_min']:.6f}")
         print(f"  Max: {summary['turnover_max']:.6f}")
-
-
-from pathlib import Path
 
 # Make logger available for import
 __all__ = [

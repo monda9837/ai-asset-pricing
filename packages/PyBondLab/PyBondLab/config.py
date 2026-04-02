@@ -9,9 +9,8 @@ Internal: _validate_rating(), _validate_subset_filter(), _validate_adj(),
 Dependencies: constants (Defaults, FilterType, ValidationMessages, RatingBounds)
 """
 
-from dataclasses import dataclass, field
-from typing import Optional, Union, List, Dict, Callable, Tuple
-import warnings
+from dataclasses import dataclass
+from typing import Optional, Union, List, Dict, Tuple
 
 from .constants import (
     Defaults,

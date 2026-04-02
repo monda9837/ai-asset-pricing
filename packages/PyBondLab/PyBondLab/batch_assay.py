@@ -12,21 +12,34 @@ Internal:     _can_pickle_specs(), _process_single_signal_assay(),
 Dependencies: anomaly_assay_fast, batch_base
 """
 
-import os
-import sys
 import gc
 import platform
 import warnings
 import time
 import multiprocessing as mp
-from concurrent.futures import ProcessPoolExecutor, as_completed, wait, FIRST_COMPLETED
+from concurrent.futures import ProcessPoolExecutor, wait, FIRST_COMPLETED
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Union, Tuple, Callable
+from typing import Dict, List, Optional, Any, Union, Tuple
 from collections import OrderedDict
 
-import numpy as np
 import pandas as pd
 import pickle
+
+# =============================================================================
+# Shared utilities from batch_base
+# =============================================================================
+
+from .batch_base import (
+    _get_start_method,
+    TQDM_AVAILABLE,
+    tqdm,
+    _suggest_parallel_config,
+    _print_memory_config,
+)
+
+# Import anomaly assay components
+from .anomaly_assay_fast import assay_anomaly_fast, AnomalyAssayResult
+
 
 # =============================================================================
 # Pickle compatibility check
@@ -64,26 +77,6 @@ def _can_pickle_specs(specs: dict) -> Tuple[bool, str]:
                     if hasattr(func, '__name__') and func.__name__ == '<lambda>':
                         return False, f"bp_universes['{name}'] contains a lambda function"
         return False, str(e)
-
-
-# =============================================================================
-# Shared utilities from batch_base
-# =============================================================================
-
-from .batch_base import (
-    _get_start_method,
-    _is_windows,
-    TQDM_AVAILABLE,
-    tqdm,
-    _estimate_memory_components,
-    _estimate_peak_memory_mb,
-    _get_available_memory_mb,
-    _suggest_parallel_config,
-    _print_memory_config,
-)
-
-# Import anomaly assay components
-from .anomaly_assay_fast import assay_anomaly_fast, AnomalyAssayResult
 
 
 # =============================================================================
@@ -721,7 +714,7 @@ class BatchAssayAnomaly:
         remaining_signals = self.signals[1:]
 
         if self.verbose:
-            print(f"  Running first signal (warmup)...")
+            print("  Running first signal (warmup)...")
 
         t0 = time.time()
         try:

@@ -744,7 +744,9 @@ def summary_return(tables, return_fmt='text'):
     """Join list of SimpleTable parts into a single rendered string."""
     # join table parts then print
     if return_fmt == 'text':
-        strdrop = lambda x: str(x).rsplit('\n',1)[0]
+        def strdrop(x):
+            return str(x).rsplit('\n', 1)[0]
+
         # convert to string drop last line
         return '\n'.join(lmap(strdrop, tables[:-1]) + [str(tables[-1])])
     elif return_fmt == 'tables':

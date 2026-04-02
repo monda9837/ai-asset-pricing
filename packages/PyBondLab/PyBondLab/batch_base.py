@@ -14,15 +14,13 @@ Dependencies: tqdm (optional), psutil (optional)
 Docs: CLAUDE.md (Phase 16j)
 """
 
-import gc
 import platform
 import time
 import warnings
 import multiprocessing as mp
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Dict, List, Optional, Any
 
-import numpy as np
 import pandas as pd
 
 
@@ -363,13 +361,13 @@ def _print_memory_config(config: Dict[str, Any], n_signals: int, verbose: bool =
     mem = config['memory_info']
 
     if verbose:
-        print(f"\nMemory Configuration:")
+        print("\nMemory Configuration:")
         print(f"  System: {mem['total_mb']/1024:.1f} GB RAM | "
               f"Available: {mem['available_mb']/1024:.1f} GB | "
               f"Target: {mem['safe_threshold_mb']/1024:.1f} GB ({mem['platform']})")
         print(f"  Data: {mem['base_data_mb']:.0f} MB total | "
               f"{mem['minimal_data_mb']:.0f} MB per signal")
-        print(f"\nParallel Settings:")
+        print("\nParallel Settings:")
         print(f"  Workers: {config['n_workers']} | "
               f"Signals/worker: {config['signals_per_worker']} | "
               f"Max in-flight: {config['max_in_flight']}")
@@ -378,7 +376,7 @@ def _print_memory_config(config: Dict[str, Any], n_signals: int, verbose: bool =
             n_chunks = (n_signals + config['chunk_size'] - 1) // config['chunk_size']
             print(f"  Chunk size: {config['chunk_size']} signals ({n_chunks} chunks)")
         else:
-            print(f"  Chunk size: None (all signals fit in memory)")
+            print("  Chunk size: None (all signals fit in memory)")
 
         status = "[OK]" if mem['is_safe'] else "[!] HIGH"
         print(f"  Est. peak memory: {mem['peak_mb']/1024:.1f} GB {status}")

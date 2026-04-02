@@ -12,7 +12,6 @@ Dependencies: matplotlib, numpy, pandas, describe.utils, visualization._latex
 from __future__ import annotations
 
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union, Dict, Any
@@ -472,7 +471,6 @@ class ResultsReporter:
                 errs.append(1.96 * ann_se * 100 if not np.isnan(ann_se) else 0)
 
             # Blue gradient: lightest for Q1, darkest for Q_last
-            from matplotlib.colors import LinearSegmentedColormap
             cmap = plt.cm.Blues
             # Map portfolio indices to 0.3-0.8 range (avoid extremes)
             ptf_colors = [cmap(0.3 + 0.5 * i / max(n_ptf - 1, 1)) for i in range(n_ptf)]

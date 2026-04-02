@@ -19,43 +19,33 @@ Authors: Giulio Rossetti, Alex Dickerson
 
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Tuple, Optional, Union, Callable, Any
+from typing import Dict, List, Tuple, Union, Any
 from dataclasses import dataclass, field
 import time
 import warnings
 from numba import njit, prange
 
 try:
-    from .constants import ColumnNames
     from .numba_core import (
-        compute_ranks_all_dates_fast,
         compute_ranks_with_custom_thresholds,
-        build_vw_lookup,
         build_vw_lookup_and_dynamic_weights,
         compute_all_returns_ultrafast,
         compute_staggered_returns_ultrafast,
     )
     from .spec_validator import (
-        validate_specs,
         generate_spec_list,
         get_valid_spec_list,
-        ValidationResult,
     )
 except ImportError:
-    from constants import ColumnNames
     from numba_core import (
-        compute_ranks_all_dates_fast,
         compute_ranks_with_custom_thresholds,
-        build_vw_lookup,
         build_vw_lookup_and_dynamic_weights,
         compute_all_returns_ultrafast,
         compute_staggered_returns_ultrafast,
     )
     from spec_validator import (
-        validate_specs,
         generate_spec_list,
         get_valid_spec_list,
-        ValidationResult,
     )
 
 
@@ -466,12 +456,11 @@ def assay_anomaly_fast(
 
     # Validate and filter specs
     if skip_invalid:
-        valid_specs, validation_result = get_valid_spec_list(
+        valid_specs, _validation_result = get_valid_spec_list(
             specs, data=data, rating_col=rating_col, verbose=verbose
         )
     else:
         valid_specs = generate_spec_list(specs)
-        validation_result = None
 
     if len(valid_specs) == 0:
         raise ValueError("No valid specifications to run")
@@ -488,11 +477,6 @@ def assay_anomaly_fast(
     datelist = sorted(data[date_col].unique())
     TM = len(datelist)
     date_to_idx = {d: i for i, d in enumerate(datelist)}
-
-    # Get unique IDs
-    all_ids = data[id_col].unique()
-    id_to_idx = {id_val: idx for idx, id_val in enumerate(all_ids)}
-    n_ids = len(all_ids)
 
     # Convert to numpy arrays (do this ONCE for the entire dataset)
     date_idx_full = data[date_col].map(date_to_idx).values.astype(np.int64)

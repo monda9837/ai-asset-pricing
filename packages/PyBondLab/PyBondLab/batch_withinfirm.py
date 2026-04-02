@@ -16,7 +16,7 @@ import platform
 import time
 import warnings
 import multiprocessing as mp
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor
 from typing import List, Dict, Optional, Union, Tuple, Any
 from dataclasses import dataclass, field
 from collections import OrderedDict
@@ -27,14 +27,9 @@ import pandas as pd
 from .batch_base import (
     BaseBatchFormation,
     _get_start_method,
-    _is_windows,
     TQDM_AVAILABLE,
     tqdm,
     REQUIRED_COLUMNS,
-    DEFAULT_COLUMNS,
-    _estimate_memory_components,
-    _estimate_peak_memory_mb,
-    _get_available_memory_mb,
     _suggest_parallel_config,
     _print_memory_config,
 )
@@ -973,7 +968,7 @@ class BatchWithinFirmSortFormation(BaseBatchFormation):
         remaining_signals = self.signals[1:]
 
         if self.verbose:
-            print(f"  Running first signal (warmup)...")
+            print("  Running first signal (warmup)...")
 
         t0 = time.time()
         try:
