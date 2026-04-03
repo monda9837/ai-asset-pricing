@@ -208,13 +208,15 @@ def main() -> int:
         if not any(step.get("id") == "apply_local_files" for step in apply_plan):
             raise RuntimeError("bootstrap apply payload did not preserve bootstrap_plan data")
 
-        written_files = apply_payload.get("written_files", [])
+        written_files = {
+            str(Path(path).resolve()) for path in apply_payload.get("written_files", [])
+        }
         expected = {
             str((temp_root / "user-state" / "local_env.md").resolve()),
             str((temp_root / "user-state" / "claude.local.md").resolve()),
             str((temp_root / "user-state" / "settings.local.json").resolve()),
         }
-        if set(written_files) != expected:
+        if written_files != expected:
             raise RuntimeError("bootstrap apply did not report the expected written files")
         if (clone_root / "LOCAL_ENV.md").exists() or (clone_root / "CLAUDE.local.md").exists():
             raise RuntimeError("bootstrap apply should not create repo-root compatibility shims by default")
