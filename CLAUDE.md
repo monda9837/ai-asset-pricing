@@ -145,3 +145,6 @@ Before publishing this repo, run:
 ```bash
 <python> tools/release_preflight.py --strict
 ```
+
+Strict preflight auto-cleans repo temp artifacts, but it still fails if the
+repo root contains `.venv/`, `.Rhistory`, or repo-root compatibility shims.

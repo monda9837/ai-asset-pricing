@@ -34,6 +34,8 @@ except ImportError:  # pragma: no cover - script execution path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PYBONDLAB_ROOT = REPO_ROOT / "packages" / "PyBondLab"
 IGNORED_CLEANUP_PARTS = {".git", "_release_check"}
+ROOT_GENERATED_DIR_NAMES = {"__pycache__", "build_check_root"}
+ROOT_GENERATED_DIR_PREFIXES = (".tmp-", ".test-tmp-")
 WRDS_SMOKE_COUNT_START = "2022-01-01"
 WRDS_SMOKE_COUNT_END = "2023-01-01"
 WRDS_SMOKE_SAMPLE_START = "2022-12-01"
@@ -978,9 +980,10 @@ def load_json(path: Path) -> dict[str, Any]:
         return {}
 
 
-def relative_path(path: Path) -> str:
+def relative_path(path: Path, root: Path | None = None) -> str:
+    base = root or REPO_ROOT
     try:
-        return path.relative_to(REPO_ROOT).as_posix()
+        return path.relative_to(base).as_posix()
     except ValueError:
         return str(path)
 
@@ -1009,13 +1012,22 @@ def force_rmtree(path: Path) -> bool:
     return not path.exists()
 
 
-def cleanup_generated_repo_artifacts() -> list[str]:
+def cleanup_generated_repo_artifacts(root: Path | None = None) -> list[str]:
+    repo_root = root or REPO_ROOT
+    pybondlab_root = repo_root / "packages" / "PyBondLab"
     removed: list[str] = []
     removable_dirs: list[Path] = []
     removable_files: list[Path] = []
-    scan_roots = [REPO_ROOT / "fintools", PYBONDLAB_ROOT, REPO_ROOT / "tools"]
+    scan_roots = [repo_root / "fintools", pybondlab_root, repo_root / "tools", repo_root / "tests"]
 
-    root_egg_info = REPO_ROOT / "fintools.egg-info"
+    for path in repo_root.iterdir():
+        if path.is_dir() and (
+            path.name in ROOT_GENERATED_DIR_NAMES
+            or path.name.startswith(ROOT_GENERATED_DIR_PREFIXES)
+        ):
+            removable_dirs.append(path)
+
+    root_egg_info = repo_root / "fintools.egg-info"
     if root_egg_info.exists():
         removable_dirs.append(root_egg_info)
 
@@ -1023,7 +1035,7 @@ def cleanup_generated_repo_artifacts() -> list[str]:
         if not root.exists():
             continue
         for path in root.rglob("*"):
-            relative = path.relative_to(REPO_ROOT)
+            relative = path.relative_to(repo_root)
             if any(part in IGNORED_CLEANUP_PARTS or part.startswith(".tmp-") for part in relative.parts):
                 continue
             if path.is_dir() and (path.name == "__pycache__" or path.name.endswith(".egg-info")):
@@ -1033,11 +1045,11 @@ def cleanup_generated_repo_artifacts() -> list[str]:
 
     for path in removable_files:
         if force_unlink(path):
-            removed.append(relative_path(path))
+            removed.append(relative_path(path, repo_root))
 
     for path in sorted(removable_dirs, key=lambda item: len(item.parts), reverse=True):
         if path.exists() and force_rmtree(path):
-            removed.append(relative_path(path))
+            removed.append(relative_path(path, repo_root))
 
     unique_removed: list[str] = []
     for item in removed:

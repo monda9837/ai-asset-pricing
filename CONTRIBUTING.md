@@ -37,6 +37,9 @@ If the repo lives in a synced folder:
 - Ensure `tools/onboarding_smoke_test.py` passes.
 - Open a pull request against `main`.
 
+Strict preflight auto-cleans repo temp artifacts, but it still expects the repo
+root to be free of `.venv/`, `.Rhistory`, and repo-root compatibility shims.
+
 ## Code Style
 
 - Python: follow existing patterns in `fintools/` and `tools/`.

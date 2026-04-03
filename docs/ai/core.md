@@ -33,6 +33,7 @@ These repo-root files are optional compatibility shims and must never be committ
 - `projects/<name>/guidance/` - per-project paper context and writing guidance, including `paper-context.md`
 - `.claude/` - CLI adapters, rules, agents, and skills (Claude-native; readable by any tool as plain markdown)
 - `.claude/hooks/` - Claude Code-only automation hooks such as LaTeX rebuild and pre-commit preflight
+- `.claude/hooks/common.sh` - shared Bash helper for hook-local tool resolution and canonical state-dir lookup
 - `tools/` - probe and release-preflight utilities
 
 Research projects should live under `projects/<name>/` with production code,
@@ -59,6 +60,7 @@ only parallelize operations known to succeed.
 - Use short lowercase data folder names such as `crsp_monthly_sp500`.
 - Keep data global and project code local; do not copy datasets into project folders.
 - Use `tools/release_preflight.py --strict` before publishing shared changes.
+- Strict preflight auto-cleans repo temp artifacts, but it intentionally fails on repo-root local state such as `.venv/`, `.Rhistory`, and repo-root compatibility shims.
 - When absolute paths matter, use the canonical local state reported by `tools/bootstrap.py audit`.
 - Run `tools/context_drift.py` to detect stale documentation after code changes.
 - A `SessionStart` hook injects recent activity and drift warnings into every Claude Code session.

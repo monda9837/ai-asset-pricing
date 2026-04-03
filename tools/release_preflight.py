@@ -57,6 +57,9 @@ REQUIRED_GITIGNORE_ENTRIES = (
     "LOCAL_ENV.md",
     "CLAUDE.local.md",
     ".claude/settings.local.json",
+    ".venv/",
+    "venv/",
+    ".Rhistory",
     "*.egg-info/",
     "*.nbc",
     "*.nbi",
@@ -78,6 +81,7 @@ REQUIRED_GIT_TRACKED_PATHS = (
 EXACT_FORBIDDEN_PATHS = (Path(".Rhistory"),)
 
 FORBIDDEN_DIR_NAMES = {"__pycache__"}
+ROOT_LEVEL_FORBIDDEN_DIR_NAMES = {".venv", "venv"}
 FORBIDDEN_DIR_PREFIXES = (".tmp-", ".test-tmp-")
 FORBIDDEN_DIR_SUFFIXES = (".egg-info",)
 FORBIDDEN_FILE_SUFFIXES = (".pyc", ".pyo", ".pyd", ".nbc", ".nbi")
@@ -152,6 +156,22 @@ def require_snippets(findings: list[Finding], root: Path, rel_path: Path, snippe
                     f"{rel_path.as_posix()} is missing required bootstrap contract text: {snippet}",
                 )
             )
+
+
+def unique_strings(values: list[str]) -> list[str]:
+    unique: list[str] = []
+    for value in values:
+        if value not in unique:
+            unique.append(value)
+    return unique
+
+
+def summarize_paths(paths: list[str], *, limit: int = 6) -> str:
+    unique_paths = unique_strings(paths)
+    if len(unique_paths) <= limit:
+        return ", ".join(unique_paths)
+    shown = ", ".join(unique_paths[:limit])
+    return f"{shown}, and {len(unique_paths) - limit} more"
 
 
 def run_onboarding_smoke(root: Path) -> Finding:
@@ -237,10 +257,58 @@ def git_tracks_path(root: Path, rel_path: Path) -> bool | None:
     return proc.returncode == 0
 
 
-def collect_findings(root: Path) -> list[Finding]:
+def collect_release_tree_findings(root: Path) -> list[Finding]:
     findings: list[Finding] = []
 
-    cleanup_generated_repo_artifacts()
+    for rel_path in EXACT_FORBIDDEN_PATHS:
+        if (root / rel_path).exists():
+            findings.append(Finding("FAIL", f"Release tree contains local/generated file: {rel_path.as_posix()}"))
+
+    for current_root, dirnames, filenames in os.walk(root, topdown=True):
+        current_path = Path(current_root)
+        try:
+            relative_root = current_path.relative_to(root)
+        except ValueError:
+            continue
+
+        if relative_root != Path(".") and ".git" in relative_root.parts:
+            dirnames[:] = []
+            continue
+
+        kept_dirs: list[str] = []
+        for dirname in sorted(dirnames):
+            if dirname == ".git":
+                continue
+            relative = Path(dirname) if relative_root == Path(".") else relative_root / dirname
+            if relative_root == Path(".") and dirname in ROOT_LEVEL_FORBIDDEN_DIR_NAMES:
+                findings.append(
+                    Finding(
+                        "FAIL",
+                        f"Release tree contains repo-root virtual environment directory: {relative.as_posix()}/",
+                    )
+                )
+                continue
+            if (
+                dirname in FORBIDDEN_DIR_NAMES
+                or dirname.startswith(FORBIDDEN_DIR_PREFIXES)
+                or dirname.endswith(FORBIDDEN_DIR_SUFFIXES)
+            ):
+                findings.append(Finding("FAIL", f"Release tree contains generated directory: {relative.as_posix()}"))
+                continue
+            kept_dirs.append(dirname)
+        dirnames[:] = kept_dirs
+
+        for filename in filenames:
+            relative = Path(filename) if relative_root == Path(".") else relative_root / filename
+            if Path(filename).suffix in FORBIDDEN_FILE_SUFFIXES:
+                findings.append(Finding("FAIL", f"Release tree contains generated file: {relative.as_posix()}"))
+
+    return findings
+
+
+def collect_findings(root: Path) -> list[Finding]:
+    findings: list[Finding] = []
+    cleaned_artifacts = cleanup_generated_repo_artifacts(root)
 
     for rel_path in REQUIRED_FILES:
         if not (root / rel_path).exists():
@@ -257,7 +325,16 @@ def collect_findings(root: Path) -> list[Finding]:
 
     findings.append(run_onboarding_smoke(root))
     findings.append(run_pybondlab_smoke(root))
-    cleanup_generated_repo_artifacts()
+    cleaned_artifacts.extend(cleanup_generated_repo_artifacts(root))
+
+    cleaned_artifacts = unique_strings(cleaned_artifacts)
+    if cleaned_artifacts:
+        findings.append(
+            Finding(
+                "INFO",
+                f"Auto-cleaned generated artifacts: {summarize_paths(cleaned_artifacts)}",
+            )
+        )
 
     for rel_path in BOOTSTRAP_LOCAL_PATHS:
         if not (root / rel_path).exists():
@@ -275,26 +352,7 @@ def collect_findings(root: Path) -> list[Finding]:
                 )
             )
 
-    for rel_path in EXACT_FORBIDDEN_PATHS:
-        if (root / rel_path).exists():
-            findings.append(Finding("FAIL", f"Release tree contains local/generated file: {rel_path.as_posix()}"))
-
-    for path in root.rglob("*"):
-        relative = path.relative_to(root)
-        if relative.parts and ".git" in relative.parts:
-            continue
-
-        if path.is_dir():
-            if (
-                path.name in FORBIDDEN_DIR_NAMES
-                or path.name.startswith(FORBIDDEN_DIR_PREFIXES)
-                or path.name.endswith(FORBIDDEN_DIR_SUFFIXES)
-            ):
-                findings.append(Finding("FAIL", f"Release tree contains generated directory: {relative.as_posix()}"))
-            continue
-
-        if path.suffix in FORBIDDEN_FILE_SUFFIXES:
-            findings.append(Finding("FAIL", f"Release tree contains generated file: {relative.as_posix()}"))
+    findings.extend(collect_release_tree_findings(root))
 
     settings_path = root / ".claude" / "settings.json"
     if settings_path.exists():
