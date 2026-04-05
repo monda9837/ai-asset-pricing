@@ -26,7 +26,7 @@ def test_smoke_base_dir_prefers_override(monkeypatch):
     temp_root = make_temp_root()
     try:
         monkeypatch.setenv("AI_ASSET_PRICING_SMOKE_DIR", str(temp_root))
-        assert smoke.smoke_base_dir() == temp_root
+        assert smoke.smoke_base_dir() == temp_root.resolve()
     finally:
         cleanup_temp_root(temp_root)
 
