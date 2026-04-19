@@ -29,7 +29,10 @@ PACKAGE_NAMES = (
     "pyarrow",
     "numpy",
     "matplotlib",
+    "seaborn",
     "statsmodels",
+    "docx",
+    "PIL",
 )
 
 

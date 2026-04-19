@@ -1,0 +1,22 @@
+{
+  "name": "ff_industry_10_monthly",
+  "description": "Full monthly 10-industry return validation fixture.",
+  "source": "Kenneth French Data Library, 10 Industry Portfolios CSV",
+  "source_url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/10_Industry_Portfolios_CSV.zip",
+  "frequency": "monthly",
+  "date_column": "date",
+  "sample": "full available monthly sample",
+  "return_scale": "percent",
+  "units": {
+    "NoDur": "percent monthly return",
+    "Durbl": "percent monthly return",
+    "Manuf": "percent monthly return",
+    "Enrgy": "percent monthly return",
+    "HiTec": "percent monthly return",
+    "Telcm": "percent monthly return",
+    "Shops": "percent monthly return",
+    "Hlth": "percent monthly return",
+    "Utils": "percent monthly return",
+    "Other": "percent monthly return"
+  }
+}

@@ -51,6 +51,7 @@ same shared routing layer.
 - WRDS-oriented data extraction and query workflows
 - factor-model research setup and reusable automation
 - `fintools/` shared utilities
+- `fintools.figures` publication-quality plotting, FT-style figure suites, and Word proof packs
 - `packages/PyBondLab/` package install, testing, and research workflows
 - LaTeX paper scaffolding, drafting, auditing, and compilation
 - shared repo context for Claude Code, Codex, and Gemini CLI
@@ -71,6 +72,7 @@ tools/onboard_probe.py                 # Shared environment probe implementation
 tools/onboarding_smoke_test.py         # Temp-clone onboarding smoke test
 tools/context_drift.py                 # Documentation drift detector
 tools/release_preflight.py             # Release/readiness checker
+tools/figure_examples.py               # FT/FINS validation figure gallery generator
 fintools/                              # Shared Python utilities
 packages/PyBondLab/                    # Portfolio construction package
 ```
@@ -144,6 +146,7 @@ The repo is still useful without live WRDS access:
 
 - AI skills, rules, and agents for writing, auditing, and project scaffolding
 - `fintools` package work
+- publication-quality plotting examples from frozen public validation fixtures
 - `PyBondLab` install/import and bundled-data smoke coverage
 - LaTeX boilerplate and paper setup
 - local onboarding and release/readiness checks
@@ -162,6 +165,7 @@ connectivity checks, and running research workflows on real WRDS-backed data.
 - WRDS workflow: `docs/ai/wrds.md`
 - PyBondLab workflow: `docs/ai/pybondlab.md`
 - writing and LaTeX workflow: `docs/ai/writing.md`
+- publication figures workflow: `docs/ai/figures.md`
 
 The `.claude/agents/*.md`, `.claude/skills/*.md`, and `.claude/rules/*.md`
 files are plain markdown and can be reused across tools.
@@ -174,10 +178,11 @@ Before publishing shared changes, run:
 <python> tools/release_preflight.py --strict
 ```
 
-Strict preflight auto-cleans repo temp artifacts such as test temp folders and
-`__pycache__`, and it tolerates gitignored repo-root local artifacts such as
-`.venv/`, `venv/`, and `.Rhistory`. It still fails if the release tree contains
-repo-root compatibility shims.
+Strict preflight auto-cleans repo temp artifacts when possible, including test
+temp folders and `__pycache__`, and it tolerates gitignored repo-root local
+artifacts such as `.venv/`, `venv/`, `.claude/settings.local.json`,
+`.tmp-pytest-current/`, `.tmp-uv-cache/`, and `.Rhistory`. It still fails if the
+release tree contains `LOCAL_ENV.md` or `CLAUDE.local.md`.
 
 ## Acknowledgements
 

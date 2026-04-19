@@ -1,0 +1,15 @@
+{
+  "name": "fred_macro_monthly",
+  "description": "Long monthly macro validation fixture.",
+  "source": "FRED CSV downloads for UNRATE, CPIAUCSL, INDPRO, PAYEMS, and FEDFUNDS",
+  "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=UNRATE,CPIAUCSL,INDPRO,PAYEMS,FEDFUNDS",
+  "frequency": "monthly",
+  "date_column": "date",
+  "units": {
+    "UNRATE": "percent",
+    "CPIAUCSL": "index 1982-1984=100",
+    "INDPRO": "index 2017=100",
+    "PAYEMS": "thousands of persons",
+    "FEDFUNDS": "percent"
+  }
+}

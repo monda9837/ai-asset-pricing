@@ -6,8 +6,13 @@ CLAUDE.local.md
 # Data output
 /data/
 
+# Maintainer-only private notes and proof packs
+.maintainers/
+
 # Temp files
 *.tmp.*
+.tmp-pytest-current/
+.tmp-uv-cache/
 .tmp-*/
 .test-tmp-*/
 
@@ -80,6 +85,20 @@ secrets/
 
 # Build/release check artifacts
 build_check_root/
+
+# Validation fixture refresh scratch
+fintools/datasets/validation/_raw/
+fintools/datasets/validation/_refresh/
+
+# Generated figure outputs
+results/figures/
+**/results/figures/
+**/results/figures/*.png
+**/results/figures/*.pdf
+**/results/figures/*.caption.md
+**/results/figures/*.docx
+**/results/figures/_checks/
+**/results/figures/**/
 
 # Project scratch (large regenerable files)
 projects/*/scripts/tests/*/output/*.csv

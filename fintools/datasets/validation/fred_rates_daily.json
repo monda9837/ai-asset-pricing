@@ -1,0 +1,15 @@
+{
+  "name": "fred_rates_daily",
+  "description": "Long daily Treasury-rate and yield-curve validation fixture.",
+  "source": "FRED CSV downloads for DGS10, DGS2, DTB3, T10Y2Y, and T10Y3M",
+  "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10,DGS2,DTB3,T10Y2Y,T10Y3M",
+  "frequency": "daily",
+  "date_column": "date",
+  "units": {
+    "DGS10": "percent",
+    "DGS2": "percent",
+    "DTB3": "percent",
+    "T10Y2Y": "percentage points",
+    "T10Y3M": "percentage points"
+  }
+}

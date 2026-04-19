@@ -62,6 +62,8 @@ REQUIRED_GITIGNORE_ENTRIES = (
     ".claude/settings.local.json",
     ".venv/",
     "venv/",
+    ".tmp-pytest-current/",
+    ".tmp-uv-cache/",
     ".Rhistory",
     "*.egg-info/",
     "*.nbc",
@@ -71,7 +73,6 @@ REQUIRED_GITIGNORE_ENTRIES = (
 BOOTSTRAP_LOCAL_PATHS = (
     Path("LOCAL_ENV.md"),
     Path("CLAUDE.local.md"),
-    Path(".claude/settings.local.json"),
 )
 
 REQUIRED_GIT_TRACKED_PATHS = (
@@ -85,6 +86,7 @@ EXACT_FORBIDDEN_PATHS: tuple[Path, ...] = ()
 
 FORBIDDEN_DIR_NAMES = {"__pycache__"}
 ROOT_LEVEL_IGNORED_DIR_NAMES = {".venv", "venv"}
+ROOT_LEVEL_IGNORED_DIR_PREFIXES = (".tmp-", ".test-tmp-")
 FORBIDDEN_DIR_PREFIXES = (".tmp-", ".test-tmp-")
 FORBIDDEN_DIR_SUFFIXES = (".egg-info",)
 FORBIDDEN_FILE_SUFFIXES = (".pyc", ".pyo", ".pyd")
@@ -286,6 +288,8 @@ def collect_release_tree_findings(root: Path) -> list[Finding]:
                 continue
             relative = Path(dirname) if relative_root == Path(".") else relative_root / dirname
             if relative_root == Path(".") and dirname in ROOT_LEVEL_IGNORED_DIR_NAMES:
+                continue
+            if relative_root == Path(".") and dirname.startswith(ROOT_LEVEL_IGNORED_DIR_PREFIXES):
                 continue
             if (
                 dirname in FORBIDDEN_DIR_NAMES

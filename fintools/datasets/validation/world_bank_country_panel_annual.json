@@ -1,0 +1,21 @@
+{
+  "name": "world_bank_country_panel_annual",
+  "description": "Annual country panel fixture for GDP, population, and GDP per capita examples.",
+  "source": "World Bank World Development Indicators, NY.GDP.MKTP.CD, SP.POP.TOTL, and NY.GDP.PCAP.CD",
+  "source_url": "https://api.worldbank.org/v2/country/USA;CHN;JPN;DEU;GBR;IND;FRA;ITA;CAN;KOR/indicator/NY.GDP.MKTP.CD?format=json&per_page=500&date=2010:2024",
+  "source_urls": {
+    "gdp_current_usd": "https://api.worldbank.org/v2/country/USA;CHN;JPN;DEU;GBR;IND;FRA;ITA;CAN;KOR/indicator/NY.GDP.MKTP.CD?format=json&per_page=500&date=2010:2024",
+    "population": "https://api.worldbank.org/v2/country/USA;CHN;JPN;DEU;GBR;IND;FRA;ITA;CAN;KOR/indicator/SP.POP.TOTL?format=json&per_page=500&date=2010:2024",
+    "gdp_per_capita_usd": "https://api.worldbank.org/v2/country/USA;CHN;JPN;DEU;GBR;IND;FRA;ITA;CAN;KOR/indicator/NY.GDP.PCAP.CD?format=json&per_page=500&date=2010:2024"
+  },
+  "frequency": "annual",
+  "date_column": "date",
+  "sample": "2010-2024",
+  "units": {
+    "gdp_current_usd": "current U.S. dollars",
+    "gdp_trillions_usd": "trillions of current U.S. dollars",
+    "population": "persons",
+    "population_millions": "millions of persons",
+    "gdp_per_capita_usd": "current U.S. dollars per person"
+  }
+}

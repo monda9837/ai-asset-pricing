@@ -12,9 +12,10 @@ should live in `docs/ai/`. Gemini CLI uses `GEMINI.md` which imports this file.
 - When machine-specific paths or tools matter, use the canonical local state reported by `tools/bootstrap.py audit`.
 - Treat canonical local state as external to the repo by default.
 - Treat repo-root `LOCAL_ENV.md` / `CLAUDE.local.md` as optional compatibility shims, not the source of truth.
+- Treat `.claude/settings.local.json` as ignored maintainer-local Claude state; never commit it.
 - Never commit `LOCAL_ENV.md`, `CLAUDE.local.md`, or `.claude/settings.local.json`.
 - Run `tools/release_preflight.py --strict` before a shared release.
-- Strict preflight auto-cleans repo temp artifacts and tolerates gitignored repo-root local artifacts such as `.venv/`, `venv/`, and `.Rhistory`, but repo-root compatibility shims still block a release-ready tree.
+- Strict preflight auto-cleans repo temp artifacts when possible and tolerates gitignored repo-root local artifacts such as `.venv/`, `venv/`, `.claude/settings.local.json`, `.tmp-pytest-current/`, `.tmp-uv-cache/`, and `.Rhistory`; `LOCAL_ENV.md` and `CLAUDE.local.md` still block a release-ready tree.
 - Gemini CLI uses `GEMINI.md` which imports this file. See `GEMINI.md` for Gemini-specific notes.
 
 ## Task Routing
@@ -51,6 +52,11 @@ should live in `docs/ai/`. Gemini CLI uses `GEMINI.md` which imports this file.
   - Auditing workflows live in `.claude/skills/audit-section/SKILL.md`, `.claude/skills/full-paper-audit/SKILL.md`, `.claude/skills/check-consistency/SKILL.md`, `.claude/skills/audit-captions/SKILL.md`, `.claude/skills/audit-math/SKILL.md`, and `.claude/skills/outline/SKILL.md`
   - Writing rules include `.claude/rules/academic-writing.md`, `.claude/rules/latex-conventions.md`, `.claude/rules/latex-citations.md`, `.claude/rules/banned-words.md`, `.claude/rules/grammar-punctuation.md`, and `.claude/rules/referee-reply.md`
   - Then read the relevant `.claude/skills/*.md` file for the concrete workflow
+- Figures, charts, plotting, Word proof packs, or visual validation:
+  - Read `docs/ai/figures.md`
+  - Use `fintools.figures` before writing custom plotting code
+  - Use `tools/figure_examples.py --style ft --docx --output results/figures` to recreate the FT validation gallery
+  - Keep generated PNG/PDF/DOCX/caption outputs under ignored `results/figures/` paths
 - Context maintenance:
   - Run `tools/context_drift.py` to detect stale documentation
   - Use `/sync-context` (Claude Code) to review and apply targeted doc updates

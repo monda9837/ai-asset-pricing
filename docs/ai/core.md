@@ -22,11 +22,16 @@ These repo-root files are optional compatibility shims and must never be committ
 
 - `LOCAL_ENV.md`
 - `CLAUDE.local.md`
+
+This file is ignored maintainer-local Claude state and must never be committed:
+
 - `.claude/settings.local.json`
 
 ## Project Structure
 
 - `fintools/` - shared Python utilities used across research code
+- `fintools/figures/` - publication-quality plotting, export, and validation helpers
+- `fintools/datasets/` - compact public validation fixtures used by examples and tests
 - `packages/PyBondLab/` - portfolio construction package
 - `data/` - extracted datasets, always local/output state
 - `boilerplate/` - shared LaTeX paper template and starter bibliography for new papers
@@ -59,8 +64,9 @@ only parallelize operations known to succeed.
 - Prefer Parquet plus `metadata.json` for extracted datasets.
 - Use short lowercase data folder names such as `crsp_monthly_sp500`.
 - Keep data global and project code local; do not copy datasets into project folders.
+- Use `fintools.figures` and `docs/ai/figures.md` for publication-quality plots.
 - Use `tools/release_preflight.py --strict` before publishing shared changes.
-- Strict preflight auto-cleans repo temp artifacts and tolerates gitignored repo-root local artifacts such as `.venv/`, `venv/`, and `.Rhistory`, but it still fails on repo-root compatibility shims.
+- Strict preflight auto-cleans repo temp artifacts when possible and tolerates gitignored repo-root local artifacts such as `.venv/`, `venv/`, `.claude/settings.local.json`, `.tmp-pytest-current/`, `.tmp-uv-cache/`, and `.Rhistory`, but it still fails on `LOCAL_ENV.md` and `CLAUDE.local.md`.
 - When absolute paths matter, use the canonical local state reported by `tools/bootstrap.py audit`.
 - Run `tools/context_drift.py` to detect stale documentation after code changes.
 - A `SessionStart` hook injects recent activity and drift warnings into every Claude Code session.

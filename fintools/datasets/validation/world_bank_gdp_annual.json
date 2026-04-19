@@ -1,0 +1,13 @@
+{
+  "name": "world_bank_gdp_annual",
+  "description": "Annual GDP validation fixture for ranking and slope-chart examples.",
+  "source": "World Bank World Development Indicators, NY.GDP.MKTP.CD",
+  "source_url": "https://api.worldbank.org/v2/country/USA;CHN;JPN;DEU;GBR;IND;FRA;ITA;CAN;KOR/indicator/NY.GDP.MKTP.CD?format=json&per_page=500&date=2010:2024",
+  "frequency": "annual",
+  "date_column": "date",
+  "sample": "2010-2024",
+  "units": {
+    "gdp_current_usd": "current U.S. dollars",
+    "gdp_trillions_usd": "trillions of current U.S. dollars"
+  }
+}

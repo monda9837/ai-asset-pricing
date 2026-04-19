@@ -1,0 +1,19 @@
+{
+  "name": "shiller_market_monthly",
+  "description": "Long monthly Robert Shiller market validation fixture.",
+  "source": "Robert Shiller Online Data, U.S. Stock Markets 1871-Present and CAPE",
+  "source_url": "http://www.econ.yale.edu/~shiller/data/ie_data.xls",
+  "frequency": "monthly",
+  "date_column": "date",
+  "units": {
+    "price": "S&P composite price index",
+    "dividend": "dividend",
+    "earnings": "earnings",
+    "cpi": "consumer price index",
+    "long_rate": "percent",
+    "real_price": "inflation-adjusted price index",
+    "real_dividend": "inflation-adjusted dividend",
+    "real_earnings": "inflation-adjusted earnings",
+    "cape": "price divided by 10-year average real earnings"
+  }
+}

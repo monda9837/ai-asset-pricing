@@ -67,6 +67,7 @@ Read these files before broad repo changes:
 - `docs/ai/wrds.md`
 - `docs/ai/pybondlab.md`
 - `docs/ai/writing.md`
+- `docs/ai/figures.md`
 
 ## Claude Skills and Rules
 
@@ -114,6 +115,12 @@ Read these files before broad repo changes:
 - `/research` - search for academic papers using Perplexity MCP
 - `/split-pdf` - split a PDF into sections or page ranges
 
+### Figures
+
+- Use `docs/ai/figures.md` and `fintools.figures` for publication-quality plots.
+- Use `python tools/figure_examples.py --style ft --docx --output results/figures` to recreate the FT validation gallery.
+- Keep generated figure files in ignored `results/figures/` directories.
+
 ### Project Management
 
 - `/idea` - adversarial research idea generator: literature survey, WRDS feasibility, research plan
@@ -148,6 +155,7 @@ Before publishing this repo, run:
 <python> tools/release_preflight.py --strict
 ```
 
-Strict preflight auto-cleans repo temp artifacts and tolerates gitignored
-repo-root virtual environments such as `.venv/`, but it still fails on
-`.Rhistory` and repo-root compatibility shims.
+Strict preflight auto-cleans repo temp artifacts when possible and tolerates
+gitignored repo-root local artifacts such as `.venv/`, `.claude/settings.local.json`,
+`.tmp-pytest-current/`, `.tmp-uv-cache/`, and `.Rhistory`. It still fails on
+`LOCAL_ENV.md` and `CLAUDE.local.md`.

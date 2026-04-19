@@ -1,0 +1,16 @@
+{
+  "name": "ff3_monthly",
+  "description": "Full monthly Fama/French 3-factor validation fixture.",
+  "source": "Kenneth French Data Library, Fama/French 3 Factors CSV",
+  "source_url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_CSV.zip",
+  "frequency": "monthly",
+  "date_column": "date",
+  "sample": "full available monthly sample",
+  "return_scale": "percent",
+  "units": {
+    "Mkt-RF": "percent monthly return",
+    "SMB": "percent monthly return",
+    "HML": "percent monthly return",
+    "RF": "percent monthly return"
+  }
+}

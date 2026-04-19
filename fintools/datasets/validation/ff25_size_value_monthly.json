@@ -1,0 +1,13 @@
+{
+  "name": "ff25_size_value_monthly",
+  "description": "Full monthly 25 size-value portfolio return validation fixture.",
+  "source": "Kenneth French Data Library, 25 Portfolios Formed on Size and Book-to-Market CSV",
+  "source_url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/25_Portfolios_5x5_CSV.zip",
+  "frequency": "monthly",
+  "date_column": "date",
+  "sample": "full available monthly sample",
+  "return_scale": "percent",
+  "units": {
+    "all_portfolios": "percent monthly return"
+  }
+}

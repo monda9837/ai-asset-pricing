@@ -48,7 +48,10 @@ PACKAGE_INSTALL_SPECS = {
     "pyarrow": "pyarrow",
     "numpy": "numpy",
     "matplotlib": "matplotlib",
+    "seaborn": "seaborn",
     "statsmodels": "statsmodels",
+    "docx": "python-docx",
+    "PIL": "Pillow",
 }
 
 

@@ -30,9 +30,10 @@ reported by `tools/bootstrap.py audit`. The canonical `local_env.md` should cont
 - `claude.local.md`
 - `settings.local.json`
 
-Repo-root `LOCAL_ENV.md`, `CLAUDE.local.md`, and `.claude/settings.local.json`
-are legacy compatibility shims only. Generate them only when you explicitly need
-single-user backward compatibility inside a private working copy.
+Repo-root `LOCAL_ENV.md` and `CLAUDE.local.md` are legacy compatibility shims
+only. Generate them only when you explicitly need single-user backward
+compatibility inside a private working copy. `.claude/settings.local.json` is
+ignored maintainer-local Claude state, not release payload.
 
 ## Shared Bootstrap Flow
 
@@ -90,7 +91,7 @@ agent runtime to request any needed approvals for package installation.
 - If canonical local state is missing, create it before relying on machine-specific commands.
 - Prefer `tools/bootstrap.py audit`, its emitted `bootstrap_plan`, and `tools/bootstrap.py apply` over ad hoc local file generation.
 - Keep `tools/bootstrap.py repair --write-canonical-state` as a convenience fallback for unsandboxed local terminals.
-- `tools/release_preflight.py --strict` auto-cleans repo temp artifacts such as `.tmp-*`, `.test-tmp-*`, and `__pycache__`, and it tolerates gitignored repo-root local artifacts such as `.venv/`, `venv/`, and `.Rhistory`. It still treats repo-root compatibility shims as release blockers.
+- `tools/release_preflight.py --strict` auto-cleans repo temp artifacts such as `.tmp-*`, `.test-tmp-*`, and `__pycache__` when possible, and it tolerates gitignored repo-root local artifacts such as `.venv/`, `venv/`, `.claude/settings.local.json`, `.tmp-pytest-current/`, `.tmp-uv-cache/`, and `.Rhistory`. It still treats `LOCAL_ENV.md` and `CLAUDE.local.md` as release blockers.
 - If the repo lives in Dropbox/OneDrive, keep canonical local state external and avoid repo-root compatibility shims unless the working copy is private to one machine.
 - Dropbox/OneDrive are supported sync layers, not a substitute for Git merge/conflict handling on the same tracked code/config files.
 - WRDS is optional. Ask once whether the user has a WRDS account and wants it configured now. If the answer is no, skip WRDS setup and still treat onboarding as complete once the base repo is ready.

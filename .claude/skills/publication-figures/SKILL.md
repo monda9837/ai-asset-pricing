@@ -5,6 +5,19 @@ description: "Publication-ready figure conventions for empirical finance and eco
 
 # Publication-Ready Figures
 
+For this repo, the production plotting toolkit is `fintools.figures`. Read
+`docs/ai/figures.md` first, then use the reusable helpers there before copying
+or writing one-off plotting code.
+
+To recreate the FT validation gallery:
+
+```bash
+python tools/figure_examples.py --style ft --docx --output results/figures
+```
+
+Generated PNG/PDF/DOCX/caption files belong under ignored `results/figures/`
+paths. Do not commit maintainer proof packs or local gallery outputs.
+
 Apply these conventions whenever creating figures. The goal: every figure Claude produces is publication-ready by default — no manual cleanup needed.
 
 ## Quick Start
