@@ -118,7 +118,9 @@ Read these files before broad repo changes:
 ### Figures
 
 - Use `docs/ai/figures.md` and `fintools.figures` for publication-quality plots.
-- Use `python tools/figure_examples.py --style ft --docx --output results/figures` to recreate the FT validation gallery.
+- Use `style="fins"` for the house publication style and `style="ft"` for FT-style output.
+- Use `python tools/figure_examples.py --style ft --docx --output results/figures` or `--style fins` to recreate validation galleries.
+- Keep `.claude/skills/publication-figures/` legacy helper assets available for explicitly requested standalone helper workflows.
 - Keep generated figure files in ignored `results/figures/` directories.
 
 ### Project Management

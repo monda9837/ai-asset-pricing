@@ -10,6 +10,17 @@ contains FT-style and paper-style themes, reusable chart builders, Word/A4
 export helpers, caption context, validation checks, and dataframe-to-figure
 suite planning.
 
+## Style Choice
+
+The native toolkit supports both repo figure styles:
+
+- Use `style="fins"` for the house publication style used by the older
+  publication-figures skill helpers.
+- Use `style="ft"` for FT-style output.
+- Keep the legacy `.claude/skills/publication-figures/finance.mplstyle` and
+  `figutils.py` assets available for explicitly requested standalone helper
+  workflows, but prefer `fintools.figures` for repo-native work.
+
 ## Deterministic Commands
 
 Build the FT-style validation gallery:
@@ -63,6 +74,8 @@ than exporting unreadable charts.
 - Always supply title, x label, y label, units, source, and sample period.
 - Use `FigureContext` for captions and source notes.
 - Use `style="ft"` for FT-inspired colors, ticks, and grids.
+- Use `style="fins"` when the user wants the original house publication style
+  rather than FT-style output.
 - Keep FT background off unless the user explicitly wants the beige background.
 - For Word/A4 exports, prefer `profile="word_a4"` and `export_word_figure`.
 - Use NBER recession shading for relevant time-series figures.

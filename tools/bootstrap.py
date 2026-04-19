@@ -415,6 +415,25 @@ def compatibility_file_status(probe: dict[str, Any]) -> list[dict[str, str]]:
     return rows
 
 
+def _is_blocking_compatibility_path(path: str) -> bool:
+    normalized = path.replace("\\", "/")
+    return (
+        normalized.endswith("/LOCAL_ENV.md")
+        or normalized == "LOCAL_ENV.md"
+        or normalized.endswith("/CLAUDE.local.md")
+        or normalized == "CLAUDE.local.md"
+    )
+
+
+def blocking_compatibility_files(report: dict[str, Any]) -> list[dict[str, str]]:
+    return [
+        item
+        for item in report.get("compatibility_files", [])
+        if item.get("status") == "OK"
+        and _is_blocking_compatibility_path(str(item.get("path", "")))
+    ]
+
+
 def validate_csv_sample(output: str) -> tuple[bool, str]:
     reader = csv.DictReader(io.StringIO(output))
     rows = list(reader)
@@ -857,11 +876,7 @@ def build_bootstrap_plan(report: dict[str, Any]) -> dict[str, Any]:
     steps: list[dict[str, Any]] = []
 
     storage_hint = probe["local_state"]["storage_hint"]
-    synced_compat_files = [
-        item["path"]
-        for item in report.get("compatibility_files", [])
-        if item.get("status") == "OK"
-    ]
+    synced_compat_files = [item["path"] for item in blocking_compatibility_files(report)]
     if storage_hint["kind"] == "synced_folder_candidate" and synced_compat_files:
         steps.append(
             make_plan_step(
@@ -873,8 +888,8 @@ def build_bootstrap_plan(report: dict[str, Any]) -> dict[str, Any]:
                     f"Synced folder detected ({storage_hint['provider']}); "
                     f"compat shims leak user-specific state: {', '.join(synced_compat_files)}"
                 ),
-                powershell="Remove-Item -Path LOCAL_ENV.md, CLAUDE.local.md, .claude\\settings.local.json -ErrorAction SilentlyContinue",
-                bash="rm -f LOCAL_ENV.md CLAUDE.local.md .claude/settings.local.json",
+                powershell="Remove-Item -Path LOCAL_ENV.md, CLAUDE.local.md -ErrorAction SilentlyContinue",
+                bash="rm -f LOCAL_ENV.md CLAUDE.local.md",
             )
         )
 
@@ -1277,7 +1292,7 @@ def display_phase_status(status: str) -> str:
 
 def summary_rows(report: dict[str, Any]) -> list[tuple[str, str]]:
     probe = report["probe"]
-    compat_status = "PRESENT" if any(item["status"] == "OK" for item in report["compatibility_files"]) else "ABSENT"
+    compat_status = "PRESENT" if blocking_compatibility_files(report) else "ABSENT"
     return [
         ("Onboarding", "SUCCESS" if report["onboarding_success"] else "BLOCKED"),
         ("Base repo", display_phase_status(report["phase_status"]["base_repo"]["status"])),
@@ -1311,11 +1326,12 @@ def build_actions(report: dict[str, Any]) -> list[str]:
             f"Repo path looks like a synced folder ({storage_hint['provider']}). Keep canonical local state external; repo-root compatibility shims are unsafe for shared-folder collaboration."
         )
 
-    if any(item["status"] == "OK" for item in report["compatibility_files"]):
+    blocking_compat_files = blocking_compatibility_files(report)
+    if blocking_compat_files:
         if storage_hint["kind"] == "synced_folder_candidate":
             actions.append(
                 f"FAIL: Repo-root compatibility shims exist in a synced folder ({storage_hint['provider']}). "
-                "Remove LOCAL_ENV.md, CLAUDE.local.md, and .claude/settings.local.json from the repo root "
+                "Remove LOCAL_ENV.md and CLAUDE.local.md from the repo root "
                 "to prevent cross-user state collisions. Canonical local state already lives at the external path reported above."
             )
         else:
@@ -1370,9 +1386,7 @@ def _synced_folder_audit_status(report: dict[str, Any]) -> str:
     hint = report["probe"]["local_state"]["storage_hint"]
     if hint["kind"] != "synced_folder_candidate":
         return "NOT_SYNCED"
-    has_compat = any(
-        item["status"] == "OK" for item in report.get("compatibility_files", [])
-    )
+    has_compat = bool(blocking_compatibility_files(report))
     return "FAIL" if has_compat else "OK"
 
 

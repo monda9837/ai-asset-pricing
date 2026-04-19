@@ -219,6 +219,28 @@ def test_figure_workflow_docs_and_ignore_policy() -> None:
     docs = (ROOT / "docs" / "ai" / "figures.md").read_text(encoding="utf-8")
     assert "tools/figure_examples.py --style ft --docx --output results/figures" in docs
     assert "fintools.figures" in docs
+    assert 'style="fins"' in docs
+    assert 'style="ft"' in docs
+
+    context_files = [
+        ROOT / "AGENTS.md",
+        ROOT / "CLAUDE.md",
+        ROOT / "GEMINI.md",
+        ROOT / "docs" / "ai" / "writing.md",
+        ROOT / ".claude" / "rules" / "latex-conventions.md",
+        ROOT / ".claude" / "skills" / "new-project" / "SKILL.md",
+        ROOT / ".claude" / "skills" / "publication-figures" / "SKILL.md",
+    ]
+    for path in context_files:
+        text = path.read_text(encoding="utf-8")
+        assert "docs/ai/figures.md" in text
+        assert "fintools.figures" in text
+
+    skill_text = (ROOT / ".claude" / "skills" / "publication-figures" / "SKILL.md").read_text(encoding="utf-8")
+    assert "finance.mplstyle" in skill_text
+    assert "figutils.py" in skill_text
+    assert (ROOT / ".claude" / "skills" / "publication-figures" / "finance.mplstyle").exists()
+    assert (ROOT / ".claude" / "skills" / "publication-figures" / "figutils.py").exists()
 
     gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
     for expected in [

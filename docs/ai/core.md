@@ -64,7 +64,8 @@ only parallelize operations known to succeed.
 - Prefer Parquet plus `metadata.json` for extracted datasets.
 - Use short lowercase data folder names such as `crsp_monthly_sp500`.
 - Keep data global and project code local; do not copy datasets into project folders.
-- Use `fintools.figures` and `docs/ai/figures.md` for publication-quality plots.
+- Use `fintools.figures` and `docs/ai/figures.md` for publication-quality plots;
+  `style="fins"` is the house publication style and `style="ft"` is FT-style output.
 - Use `tools/release_preflight.py --strict` before publishing shared changes.
 - Strict preflight auto-cleans repo temp artifacts when possible and tolerates gitignored repo-root local artifacts such as `.venv/`, `venv/`, `.claude/settings.local.json`, `.tmp-pytest-current/`, `.tmp-uv-cache/`, and `.Rhistory`, but it still fails on `LOCAL_ENV.md` and `CLAUDE.local.md`.
 - When absolute paths matter, use the canonical local state reported by `tools/bootstrap.py audit`.

@@ -28,6 +28,13 @@ DRIFT_MAP: list[tuple[str, str]] = [
     ("fintools/**/*.py", "docs/ai/core.md"),
     (".claude/hooks/*.sh", "docs/ai/core.md"),
     ("tools/release_preflight.py", "docs/ai/core.md"),
+    # docs/ai/figures.md references the native plotting toolkit, fixtures, and gallery tools
+    ("fintools/figures/**/*.py", "docs/ai/figures.md"),
+    ("fintools/datasets/**/*.py", "docs/ai/figures.md"),
+    ("fintools/datasets/validation/*", "docs/ai/figures.md"),
+    ("tools/figure_examples.py", "docs/ai/figures.md"),
+    ("tools/download_validation_data.py", "docs/ai/figures.md"),
+    (".claude/skills/publication-figures/SKILL.md", "docs/ai/figures.md"),
     # docs/ai/pybondlab.md references PyBondLab code and docs
     ("packages/PyBondLab/PyBondLab/*.py", "docs/ai/pybondlab.md"),
     ("packages/PyBondLab/docs/*.md", "docs/ai/pybondlab.md"),
@@ -48,9 +55,15 @@ DRIFT_MAP: list[tuple[str, str]] = [
     ("docs/ai/wrds.md", "AGENTS.md"),
     ("docs/ai/pybondlab.md", "AGENTS.md"),
     ("docs/ai/writing.md", "AGENTS.md"),
+    ("docs/ai/figures.md", "AGENTS.md"),
     # CLAUDE.md must reflect docs/ai/
     ("docs/ai/core.md", "CLAUDE.md"),
     ("docs/ai/onboarding.md", "CLAUDE.md"),
+    ("docs/ai/figures.md", "CLAUDE.md"),
+    # Figure workflow routing must stay synced across agent surfaces
+    ("docs/ai/figures.md", "GEMINI.md"),
+    ("docs/ai/figures.md", "README.md"),
+    ("docs/ai/figures.md", ".claude/skills/publication-figures/SKILL.md"),
     # Claude onboarding skill must reflect the shared onboarding doc
     ("docs/ai/onboarding.md", ".claude/skills/onboard/SKILL.md"),
     # CONTRIBUTING.md must reflect onboarding and bootstrap

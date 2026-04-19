@@ -55,7 +55,9 @@ should live in `docs/ai/`. Gemini CLI uses `GEMINI.md` which imports this file.
 - Figures, charts, plotting, Word proof packs, or visual validation:
   - Read `docs/ai/figures.md`
   - Use `fintools.figures` before writing custom plotting code
-  - Use `tools/figure_examples.py --style ft --docx --output results/figures` to recreate the FT validation gallery
+  - Use `style="fins"` for the house publication style and `style="ft"` for FT-style output
+  - Use `tools/figure_examples.py --style ft --docx --output results/figures` or `--style fins` to recreate validation galleries
+  - Keep `.claude/skills/publication-figures/` legacy helper assets available for explicitly requested standalone helper workflows
   - Keep generated PNG/PDF/DOCX/caption outputs under ignored `results/figures/` paths
 - Context maintenance:
   - Run `tools/context_drift.py` to detect stale documentation

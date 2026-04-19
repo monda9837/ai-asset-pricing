@@ -40,6 +40,11 @@ Delimit every section with comment markers to enable programmatic extraction:
 ## Figures
 
 - **Formats**: Use PDF for vector graphics and PNG for matplotlib/raster output
+- **Generated plots**: Use `docs/ai/figures.md` and `fintools.figures` for
+  publication-quality charts. Use `style="fins"` for the house publication
+  style and `style="ft"` for FT-style output.
+- **Proof packs**: For Word/A4 validation packs, use the export and DOCX
+  helpers in `fintools.figures` rather than manually scaling images.
 - **Axis labels**: Every axis must have a label with units (e.g., "Monthly return (%)")
 - **Self-contained captions**: Caption must be readable without the surrounding text
   - State what the figure shows

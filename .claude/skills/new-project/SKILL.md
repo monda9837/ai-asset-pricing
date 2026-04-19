@@ -120,6 +120,9 @@ Data is pulled from the global `data/` folder. Datasets used by this project:
 
 ### Output Formats
 - **Figures:** PNG (300 DPI) for drafts, PDF for final versions in `results/figures/`
+- **Figure generation:** Use `docs/ai/figures.md` and `fintools.figures`; use
+  `style="fins"` for house-style publication plots and `style="ft"` for
+  FT-style output
 - **Tables:** LaTeX `.tex` for the paper, CSV for debugging
 - **Final outputs** for the paper go in `results/figures/` and `results/tables/`
 

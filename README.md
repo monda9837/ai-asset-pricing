@@ -51,7 +51,7 @@ same shared routing layer.
 - WRDS-oriented data extraction and query workflows
 - factor-model research setup and reusable automation
 - `fintools/` shared utilities
-- `fintools.figures` publication-quality plotting, FT-style figure suites, and Word proof packs
+- `fintools.figures` publication-quality plotting, house-style and FT-style figure suites, and Word proof packs
 - `packages/PyBondLab/` package install, testing, and research workflows
 - LaTeX paper scaffolding, drafting, auditing, and compilation
 - shared repo context for Claude Code, Codex, and Gemini CLI
@@ -72,7 +72,7 @@ tools/onboard_probe.py                 # Shared environment probe implementation
 tools/onboarding_smoke_test.py         # Temp-clone onboarding smoke test
 tools/context_drift.py                 # Documentation drift detector
 tools/release_preflight.py             # Release/readiness checker
-tools/figure_examples.py               # FT/FINS validation figure gallery generator
+tools/figure_examples.py               # FINS/FT validation figure gallery generator
 fintools/                              # Shared Python utilities
 packages/PyBondLab/                    # Portfolio construction package
 ```
@@ -92,7 +92,7 @@ packages/PyBondLab/                    # Portfolio construction package
 The canonical local state lives **outside the repo** in a per-user OS-specific
 directory reported by `tools/bootstrap.py audit`.
 
-That canonical local state includes tool paths and compatibility files such as:
+That canonical local state includes tool paths and local files such as:
 
 - `local_env.md`
 - `claude.local.md`
@@ -102,11 +102,13 @@ Repo-root compatibility shims may still be generated when explicitly requested:
 
 - `LOCAL_ENV.md`
 - `CLAUDE.local.md`
-- `.claude/settings.local.json`
 
 Those shims are legacy compatibility files only. In shared Dropbox/OneDrive
 working trees, the canonical local state should stay external so machine-local
 paths do not sync across users.
+
+`.claude/settings.local.json` is ignored maintainer-local Claude state. It is
+not release payload and should not be committed.
 
 ## Manual WRDS Files
 

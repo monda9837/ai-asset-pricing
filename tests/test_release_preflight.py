@@ -40,7 +40,27 @@ def test_collect_findings_ignores_repo_root_venv(monkeypatch, tmp_path):
     monkeypatch.setattr(preflight, "REQUIRED_FILES", ())
     monkeypatch.setattr(preflight, "REQUIRED_BOOTSTRAP_SNIPPETS", {})
     monkeypatch.setattr(preflight, "REQUIRED_GITIGNORE_ENTRIES", ())
-    monkeypatch.setattr(preflight, "BOOTSTRAP_LOCAL_PATHS", ())
+    monkeypatch.setattr(preflight, "REQUIRED_GIT_TRACKED_PATHS", ())
+    monkeypatch.setattr(preflight, "SHARED_TEXT_FILES", ())
+    monkeypatch.setattr(preflight, "cleanup_generated_repo_artifacts", lambda _: [])
+    monkeypatch.setattr(preflight, "run_onboarding_smoke", lambda _: preflight.Finding("PASS", "smoke ok"))
+    monkeypatch.setattr(preflight, "run_pybondlab_smoke", lambda _: preflight.Finding("PASS", "pybondlab ok"))
+    monkeypatch.setattr(preflight, "has_git_metadata", lambda _: False)
+
+    findings = preflight.collect_findings(root)
+    fail_messages = [finding.message for finding in findings if finding.level == "FAIL"]
+
+    assert fail_messages == []
+
+
+def test_collect_findings_tolerates_maintainer_settings_local(monkeypatch, tmp_path):
+    root = tmp_path / "repo"
+    (root / ".claude").mkdir(parents=True)
+    (root / ".claude" / "settings.local.json").write_text("{}", encoding="utf-8")
+
+    monkeypatch.setattr(preflight, "REQUIRED_FILES", ())
+    monkeypatch.setattr(preflight, "REQUIRED_BOOTSTRAP_SNIPPETS", {})
+    monkeypatch.setattr(preflight, "REQUIRED_GITIGNORE_ENTRIES", ())
     monkeypatch.setattr(preflight, "REQUIRED_GIT_TRACKED_PATHS", ())
     monkeypatch.setattr(preflight, "SHARED_TEXT_FILES", ())
     monkeypatch.setattr(preflight, "cleanup_generated_repo_artifacts", lambda _: [])

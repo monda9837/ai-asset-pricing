@@ -9,6 +9,9 @@ automation still lives in `.claude/`.
 - Preserve journal-style conventions, citation hygiene, and reproducible builds.
 - Use local tool paths from canonical local state reported by `tools/bootstrap.py audit` when compiling.
 - Use the shared boilerplate under `boilerplate/` as the canonical starting point for new papers.
+- Use `docs/ai/figures.md` and `fintools.figures` for generated paper figures,
+  FT-style charts, house-style publication plots, validation galleries, and
+  Word proof packs.
 - Claude Code auto-recompiles nearby `main.tex` files via `.claude/hooks/compile-tex.sh`; Codex users should run the LaTeX build cycle manually after `.tex` edits.
 - When starting from `/new-project`, expect it to offer `/setup-paper` as the paper-setup follow-on step.
 - Before `/new-project`, the ideation workflow in `.claude/skills/idea/SKILL.md` can develop and stress-test a research idea. It produces `projects/{mnemonic}_idea/research_plan.md` which feeds directly into `/build-context` after graduation.
@@ -32,6 +35,7 @@ When needed, read these shared templates and deeper references instead of duplic
 
 - `boilerplate/template_main.tex`
 - `boilerplate/template_references.bib`
+- `docs/ai/figures.md`
 - `.claude/rules/academic-writing.md`
 - `.claude/rules/latex-conventions.md`
 - `.claude/rules/latex-citations.md`

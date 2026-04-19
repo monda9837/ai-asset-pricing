@@ -31,6 +31,7 @@ REQUIRED_FILES = (
     Path(".claude/skills/setup-paper/SKILL.md"),
     Path(".claude/skills/new-project/SKILL.md"),
     Path(".claude/skills/build-context/SKILL.md"),
+    Path(".claude/skills/publication-figures/SKILL.md"),
     Path("boilerplate/template_main.tex"),
     Path("boilerplate/template_references.bib"),
     Path("docs/ai/core.md"),
@@ -38,6 +39,7 @@ REQUIRED_FILES = (
     Path("docs/ai/wrds.md"),
     Path("docs/ai/pybondlab.md"),
     Path("docs/ai/writing.md"),
+    Path("docs/ai/figures.md"),
     Path("packages/PyBondLab/AGENTS.md"),
     Path("packages/PyBondLab/pyproject.toml"),
     Path("packages/PyBondLab/PyBondLab/data/__init__.py"),
@@ -64,6 +66,7 @@ REQUIRED_GITIGNORE_ENTRIES = (
     "venv/",
     ".tmp-pytest-current/",
     ".tmp-uv-cache/",
+    "build_check_root/",
     ".Rhistory",
     "*.egg-info/",
     "*.nbc",
@@ -85,7 +88,7 @@ REQUIRED_GIT_TRACKED_PATHS = (
 EXACT_FORBIDDEN_PATHS: tuple[Path, ...] = ()
 
 FORBIDDEN_DIR_NAMES = {"__pycache__"}
-ROOT_LEVEL_IGNORED_DIR_NAMES = {".venv", "venv"}
+ROOT_LEVEL_IGNORED_DIR_NAMES = {".venv", "venv", "build_check_root"}
 ROOT_LEVEL_IGNORED_DIR_PREFIXES = (".tmp-", ".test-tmp-")
 FORBIDDEN_DIR_PREFIXES = (".tmp-", ".test-tmp-")
 FORBIDDEN_DIR_SUFFIXES = (".egg-info",)
@@ -109,6 +112,7 @@ SHARED_TEXT_FILES = (
     Path("docs/ai/wrds.md"),
     Path("docs/ai/pybondlab.md"),
     Path("docs/ai/writing.md"),
+    Path("docs/ai/figures.md"),
     Path("CONTRIBUTING.md"),
     Path("GEMINI.md"),
     Path("packages/PyBondLab/AGENTS.md"),
@@ -116,6 +120,7 @@ SHARED_TEXT_FILES = (
     Path("tools/onboard_driver.py"),
     Path("tools/onboard_probe.py"),
     Path(".claude/skills/setup-paper/SKILL.md"),
+    Path(".claude/skills/publication-figures/SKILL.md"),
 )
 
 REQUIRED_BOOTSTRAP_SNIPPETS = {
@@ -123,7 +128,7 @@ REQUIRED_BOOTSTRAP_SNIPPETS = {
     Path("AGENTS.md"): ("tools/bootstrap.py", "docs/ai/onboarding.md", "canonical local state"),
     Path("CLAUDE.md"): ("tools/bootstrap.py", "/onboard", "canonical local state", "WRDS"),
     Path("CONTRIBUTING.md"): ("tools/bootstrap.py", "canonical local state", "/onboard", "WRDS"),
-    Path("GEMINI.md"): ("AGENTS.md", "tools/bootstrap.py", "canonical local state"),
+    Path("GEMINI.md"): ("AGENTS.md", "tools/bootstrap.py", "canonical local state", "docs/ai/figures.md"),
     Path("docs/ai/onboarding.md"): ("tools/bootstrap.py", "audit", "bootstrap_plan", "apply", "/onboard", "canonical local state", "WRDS"),
     Path(".claude/skills/onboard/SKILL.md"): ("tools/bootstrap.py audit", "bootstrap_plan.steps", "tools/bootstrap.py apply", "WRDS"),
     Path("tools/onboard_probe.py"): ("def collect_probe",),
@@ -134,6 +139,8 @@ REQUIRED_BOOTSTRAP_SNIPPETS = {
     Path(".claude/skills/setup-paper/SKILL.md"): ("boilerplate/template_main.tex", "[REMOVE]", "references.bib"),
     Path(".claude/skills/new-project/SKILL.md"): ("/setup-paper",),
     Path(".claude/skills/build-context/SKILL.md"): ("guidance/paper-context.md", "guidance/"),
+    Path(".claude/skills/publication-figures/SKILL.md"): ("docs/ai/figures.md", "fintools.figures", 'style="fins"', 'style="ft"'),
+    Path("docs/ai/figures.md"): ("fintools.figures", 'style="fins"', 'style="ft"', "tools/figure_examples.py"),
 }
 
 

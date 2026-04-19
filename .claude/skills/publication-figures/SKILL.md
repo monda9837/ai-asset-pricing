@@ -6,8 +6,15 @@ description: "Publication-ready figure conventions for empirical finance and eco
 # Publication-Ready Figures
 
 For this repo, the production plotting toolkit is `fintools.figures`. Read
-`docs/ai/figures.md` first, then use the reusable helpers there before copying
-or writing one-off plotting code.
+`docs/ai/figures.md` first, then choose the plotting path deliberately:
+
+- Use native `fintools.figures` helpers for repo work, Word proof packs,
+  validation checks, and dataframe-to-figure suites.
+- Use `style="fins"` for the house publication style and `style="ft"` for
+  FT-style output.
+- Use the legacy skill-local `finance.mplstyle` / `figutils.py` assets only
+  when the user explicitly wants the older standalone helper style or needs a
+  portable snippet outside the package workflow.
 
 To recreate the FT validation gallery:
 
@@ -15,12 +22,22 @@ To recreate the FT validation gallery:
 python tools/figure_examples.py --style ft --docx --output results/figures
 ```
 
+To recreate the house-style gallery:
+
+```bash
+python tools/figure_examples.py --style fins --docx --output results/figures
+```
+
 Generated PNG/PDF/DOCX/caption files belong under ignored `results/figures/`
 paths. Do not commit maintainer proof packs or local gallery outputs.
 
 Apply these conventions whenever creating figures. The goal: every figure Claude produces is publication-ready by default — no manual cleanup needed.
 
-## Quick Start
+## Legacy Helper Quick Start
+
+Prefer `fintools.figures` for this repo. The helper assets below remain
+available for standalone or explicitly requested legacy publication-style
+plots.
 
 Copy `finance.mplstyle` from this skill directory into the project, then:
 ```python

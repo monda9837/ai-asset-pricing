@@ -136,6 +136,38 @@ def test_build_bootstrap_plan_emits_cleanup_for_synced_compat_shims():
     cleanup_steps = [s for s in plan["steps"] if s["id"] == "remove_synced_compat_shims"]
     assert len(cleanup_steps) == 1
     assert "Dropbox" in cleanup_steps[0]["reason"]
+    assert ".claude/settings.local.json" not in cleanup_steps[0]["powershell"]
+    assert ".claude/settings.local.json" not in cleanup_steps[0]["bash"]
+
+
+def test_build_bootstrap_plan_tolerates_maintainer_settings_local():
+    report = {
+        "probe": {
+            "python": {"path": "/usr/bin/python3"},
+            "local_state": {
+                "storage_hint": {"kind": "synced_folder_candidate", "provider": "Dropbox"},
+                "files": {
+                    "local_env": {"canonical_path": "/tmp/state/local_env.md", "canonical_status": "OK"},
+                    "claude_local": {"canonical_path": "/tmp/state/claude.local.md", "canonical_status": "OK"},
+                    "settings_local": {"canonical_path": "/tmp/state/settings.local.json", "canonical_status": "OK"},
+                },
+            },
+            "packages": {},
+            "tools": {"uv": {"path": ""}},
+        },
+        "wrds_mode": {"requested": "no", "effective": "no", "reason": "skipped", "username": ""},
+        "options": {"skip_wrds_test": True},
+        "repo_packages": [],
+        "local_files": [{"path": "/tmp/state/local_env.md", "status": "OK"}],
+        "compatibility_files": [
+            {"status": "MISSING", "path": "LOCAL_ENV.md"},
+            {"status": "MISSING", "path": "CLAUDE.local.md"},
+            {"status": "OK", "path": ".claude/settings.local.json"},
+        ],
+    }
+    plan = bootstrap.build_bootstrap_plan(report)
+    assert [s for s in plan["steps"] if s["id"] == "remove_synced_compat_shims"] == []
+    assert bootstrap._synced_folder_audit_status(report) == "OK"
 
 
 # --- 9c: write_outputs refuses compat shims in synced folders ---
@@ -370,10 +402,28 @@ def test_synced_folder_audit_status_fail_when_compat_shims_exist():
             },
         },
         "compatibility_files": [
-            {"status": "OK"}, {"status": "MISSING"}, {"status": "MISSING"},
+            {"status": "OK", "path": "LOCAL_ENV.md"},
+            {"status": "MISSING", "path": "CLAUDE.local.md"},
+            {"status": "MISSING", "path": ".claude/settings.local.json"},
         ],
     }
     assert bootstrap._synced_folder_audit_status(report) == "FAIL"
+
+
+def test_synced_folder_audit_status_ok_for_settings_local_only():
+    report = {
+        "probe": {
+            "local_state": {
+                "storage_hint": {"kind": "synced_folder_candidate", "provider": "OneDrive"},
+            },
+        },
+        "compatibility_files": [
+            {"status": "MISSING", "path": "LOCAL_ENV.md"},
+            {"status": "MISSING", "path": "CLAUDE.local.md"},
+            {"status": "OK", "path": ".claude/settings.local.json"},
+        ],
+    }
+    assert bootstrap._synced_folder_audit_status(report) == "OK"
 
 
 def test_synced_folder_audit_status_not_synced():

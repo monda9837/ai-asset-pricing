@@ -112,9 +112,10 @@ behavior, not controlled by bootstrap. Key facts:
   `settings.local.json`. It writes only a minimal structure to the canonical
   external path.
 - If `.claude/settings.local.json` appears in the repo root with user-specific
-  paths, it is safe to delete. It is `.gitignore`-d and will not propagate via
-  Git. However, OneDrive and Dropbox sync ignore `.gitignore`, so the file may
-  propagate via cloud sync.
+  paths, it may be kept as ignored maintainer-local state or deleted if not
+  needed. It is `.gitignore`-d and will not propagate via Git. However,
+  OneDrive and Dropbox sync ignore `.gitignore`, so the file may propagate via
+  cloud sync.
 - OneDrive has no file-level exclusion mechanism (no `.driveignore`). The only
   defense against synced local files is architectural elimination: keep all
   important permissions in the shared `settings.json` so the auto-created local
